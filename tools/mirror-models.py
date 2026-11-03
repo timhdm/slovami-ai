@@ -33,7 +33,8 @@ MODELS = {
 def verify(file: Path, size: int, expected_hash: str) -> None:
     if file.stat().st_size != size:
         raise RuntimeError(f"Size mismatch: {file}")
-    digest = hashlib.file_digest(file.open("rb"), "sha256").hexdigest()
+    with file.open("rb") as stream:
+        digest = hashlib.file_digest(stream, "sha256").hexdigest()
     if digest != expected_hash:
         raise RuntimeError(f"SHA-256 mismatch: {file}")
 
@@ -89,7 +90,7 @@ def main() -> None:
         api.upload_file(path_or_fileobj=str(manifest_file), path_in_repo="manifest.json",
                         repo_id=args.target, repo_type="model")
         # Verify published files are resolvable; the app will still be switched only in a later PR.
-        published = {s.rfilename for s in api.list_repo_tree(args.target, recursive=True)}
+        published = {s.path for s in api.list_repo_tree(args.target, recursive=True)}
         missing = set(MODELS) | {"manifest.json"}
         missing -= published
         if missing:
