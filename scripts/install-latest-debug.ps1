@@ -2,7 +2,7 @@
 # Requirements: GitHub CLI (gh), Android platform-tools (adb), connected Android device.
 param(
     [string]$Repository = 'timhdm/slovami-ai',
-    [string]$Branch = 'fix/eres2net-diarization-crash'
+    [string]$Branch = 'main'
 )
 
 $ErrorActionPreference = 'Stop'
