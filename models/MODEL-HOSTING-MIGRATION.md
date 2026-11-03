@@ -28,7 +28,7 @@ To check the actual bytes on the new server against the registered SHA-256,
 run from the Git checkout:
 
 ```powershell
-py tools/mirror-models.py --source TimHdm/slovami-ai-models
+py tools/mirror-models.py
 ```
 
 This downloads approximately 725 MB of model files into
