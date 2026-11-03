@@ -1,88 +1,63 @@
-# How to publish ProtocolVoice on GitHub
+# Publishing Slovami AI
 
-This folder contains a clean, publishable copy of the ProtocolVoice Android source code.
-The large ML models are NOT included here — they are hosted separately on Hugging Face
-and downloaded by the app on first run.
+Repository: https://github.com/timhdm/slovami-ai
 
-## Pre-publication checklist
+Slovami AI is an Android application built with Kotlin, Jetpack Compose and Gradle.
+The GitHub repository already exists. Do not initialize a second Git repository
+or push directly to main to publish changes.
 
-- [ ] Review `README.md` — make sure it accurately describes the project.
-- [ ] Review `LICENSE` — Apache 2.0. Make sure your name / org is in any copyright notices.
-- [ ] Review `CONTRIBUTING.md` — adjust contact info if needed.
-- [ ] Verify there are no secrets in the code (search for `hf_`, `sk-`, `password`, `token`, etc.).
-- [ ] Verify `local.properties` is in `.gitignore` — it contains your Android SDK path which is machine-specific.
+## Development workflow
 
-## Step 1: Create a GitHub repository
+1. Create one task branch from the current main.
+2. Make changes and build locally.
+3. Run unit tests before opening a pull request.
+4. Open a pull request into main and wait for required checks.
+5. Complete the task with **Squash and Merge**.
+6. Delete the task branch after merging.
 
-1. Go to https://github.com/new
-2. Repository name: `protocolvoice` (or `protocolvoice-android`)
-3. Description: "Offline voice transcription with on-device ASR and speaker diarization"
-4. **Public** (to establish open-source timestamp)
-5. **Do NOT** initialize with README, .gitignore, or license — we have our own
-6. Click "Create repository"
+For Windows builds, see [docs/BUILDING.md](docs/BUILDING.md). The source
+tree includes `gradlew` for Git Bash and the Gradle Wrapper JAR.
 
-## Step 2: Initialize git locally and push
+## GitHub Actions setup
 
-Open PowerShell in this folder (`C:\Work_Claude\Output\ProtocolVoice_GitHub_ready`):
+A fresh repository does not inherit GitHub Actions secrets.
+To enable signed debug APK builds, set these repository secrets in
+Settings -> Secrets and variables -> Actions:
 
-```powershell
-cd C:\Work_Claude\Output\ProtocolVoice_GitHub_ready
+- `DEBUG_KEYSTORE_BASE64`: base64-encoded contents of the signing keystore
+- `DEBUG_KEYSTORE_PASSWORD`: password for that keystore
+- `DEBUG_KEY_PASSWORD`: password for the signing key
 
-git init
-git branch -M main
-git add .
-git commit -m "Initial public release of ProtocolVoice"
+The signing key alias is defined in `app/build.gradle.kts`.
+Keep the actual keystore and passwords out of Git and public documents.
+Do not paste secret values into issues or pull requests.
 
-# Replace YOUR_USERNAME with your GitHub username
-git remote add origin https://github.com/YOUR_USERNAME/protocolvoice.git
-git push -u origin main
-```
+The workflow `.github/workflows/android.yml` builds a signed debug APK;
+pull requests also run unit tests. Manual workflow_dispatch can request tests.
+The uploaded artifact is named `slovami-ai-debug-apk`.
 
-The first push will ask you to authenticate. Use a Personal Access Token (not password):
-- Go to https://github.com/settings/tokens/new
-- Scope: `repo` (full)
-- Copy the token, paste when git asks for password.
+For a local ADB installation of a workflow artifact, use
+`scripts/install-latest-debug.ps1`. By default it selects the main branch.
+Existing installations can be updated only with a matching signing key.
 
-## Step 3: Verify the upload
+## Releases
 
-After push, visit your repo URL. You should see:
-- README rendered with badges
-- LICENSE file recognized as "Apache-2.0"
-- All source code under `app/src/`
+1. Build and test the intended release version.
+2. Create an appropriate version tag.
+3. Generate a release-signed APK/AAB using the release signing key.
+4. Create a GitHub Release in https://github.com/timhdm/slovami-ai/releases
+   and attach the tested build and release notes.
+5. Publish screenshots and a privacy policy when distributing more widely.
 
-## Step 4: (Recommended) Create a release for the APK
+Do not upload a debug-signed build as a production release.
 
-To distribute the cleaned APK (~36 MB):
-1. Go to https://github.com/YOUR_USERNAME/protocolvoice/releases/new
-2. Tag: `v1.0.0`
-3. Title: "ProtocolVoice v1.0.0 — initial release"
-4. Description: paste from `RELEASE_NOTES.md` (in this folder)
-5. Attach the APK file: `C:\Work_Claude\Output\ProtocolVoice_internal\releases\protocolvoice-clean-2026-05-01_2303.apk`
-6. Click "Publish release"
+## Models and licensing
 
-## Step 5: Add badges and screenshots
+The app currently downloads some models from
+https://huggingface.co/protocolvoice/asr-models. This is an existing runtime
+dependency, not the Slovami AI GitHub repository. Do not change this URL
+until an independently hosted, verified model mirror is ready.
 
-Once pushed, the README has placeholders for badges. Update with your repo URL:
-- Build status: GitHub Actions
-- Latest release: shields.io badge
-
-You can add screenshots to a `docs/screenshots/` folder and reference them in README.
-
-## Why we exclude the large ML models
-
-The 4 ONNX model files (~511 MB total) are NOT in this repository because:
-1. GitHub limits files to 100 MB
-2. Even with git-lfs, this would slow down `git clone` enormously
-3. ML models are conventionally hosted on Hugging Face
-
-The models are at: https://huggingface.co/protocolvoice/asr-models
-The app downloads them on first run via the built-in Downloader.
-
-## What's still missing for true publication readiness
-
-1. **Screenshots** in `docs/screenshots/` — needed for Google Play and good README
-2. **Privacy policy** — needed for Google Play (mention "all processing on-device, no data collection")
-3. **Google Play account** — needed to publish to Play Store ($25 one-time fee)
-4. **Signed release APK** — for Play Store you need a release-signed APK with proper signing key
-
-These are not blockers for GitHub publication, but they are blockers for Play Store.
+Review model licences and attribution in `models/CREDITS.md` and the
+project's `LICENSE` before publication. Preserve required notices for
+third-party components and pre-existing source code.
