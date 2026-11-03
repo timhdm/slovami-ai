@@ -2,7 +2,7 @@ name: Android checks
 on:
   push:
     branches:
-      - fix/eres2net-diarization-crash
+      - main
   pull_request:
   workflow_dispatch:
     inputs:
@@ -56,12 +56,12 @@ jobs:
           DEBUG_KEYSTORE_BASE64: ${{ secrets.DEBUG_KEYSTORE_BASE64 }}
         run: |
           test -n "$DEBUG_KEYSTORE_BASE64"
-          printf '%s' "$DEBUG_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/protocolvoice-debug.jks"
-          chmod 600 "$RUNNER_TEMP/protocolvoice-debug.jks"
+          printf '%s' "$DEBUG_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/slovami-ai-debug.jks"
+          chmod 600 "$RUNNER_TEMP/slovami-ai-debug.jks"
 
       - name: Build signed debug APK
         env:
-          DEBUG_KEYSTORE_PATH: ${{ runner.temp }}/protocolvoice-debug.jks
+          DEBUG_KEYSTORE_PATH: ${{ runner.temp }}/slovami-ai-debug.jks
           DEBUG_KEYSTORE_PASSWORD: ${{ secrets.DEBUG_KEYSTORE_PASSWORD }}
           DEBUG_KEY_PASSWORD: ${{ secrets.DEBUG_KEY_PASSWORD }}
         run: bash ./gradlew --no-daemon assembleDebug
@@ -69,7 +69,7 @@ jobs:
       - name: Run unit tests (pull requests or requested full check)
         if: ${{ github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.run_tests) }}
         env:
-          DEBUG_KEYSTORE_PATH: ${{ runner.temp }}/protocolvoice-debug.jks
+          DEBUG_KEYSTORE_PATH: ${{ runner.temp }}/slovami-ai-debug.jks
           DEBUG_KEYSTORE_PASSWORD: ${{ secrets.DEBUG_KEYSTORE_PASSWORD }}
           DEBUG_KEY_PASSWORD: ${{ secrets.DEBUG_KEY_PASSWORD }}
         run: bash ./gradlew --no-daemon testDebugUnitTest

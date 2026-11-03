@@ -13,5 +13,5 @@ does not replace the terms for each downloaded model or bundled dependency.
 | sherpa-onnx | https://github.com/k2-fsa/sherpa-onnx |
 | Optional QVikhr | https://huggingface.co/Vikhrmodels/QVikhr-2.5-1.5B-Instruct-r |
 
-Model download registry: `app/src/main/java/app/protocolvoice/downloader/ModelRegistry.kt`.
+Model download registry: `app/src/main/java/app/slovami/ai/downloader/ModelRegistry.kt`.
 Check the exact upstream model revision and license before redistributing weights.

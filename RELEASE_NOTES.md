@@ -1,6 +1,6 @@
 # Slovami AI v1.0.0 — Initial release
 
-First public release of ProtocolVoice, an Android app for offline interview transcription.
+First public release of Slovami AI, an Android app for offline interview transcription.
 
 ## What it does
 
@@ -52,7 +52,7 @@ Built on top of these excellent open-source projects:
 
 ## Installation
 
-Download `protocolvoice-v1.0.0.apk` from the assets below and install it:
+Download `slovami-ai-v1.0.0.apk` from the assets below and install it:
 - Allow "Install from unknown sources" in Android Settings → Security
 - Open the APK, follow prompts
 - On first launch, app will download ML models (~332 MB) from Hugging Face

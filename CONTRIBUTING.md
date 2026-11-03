@@ -1,6 +1,6 @@
-# Contributing to ProtocolVoice
+# Contributing to Slovami AI
 
-Thanks for your interest! ProtocolVoice is built by professionals who needed an offline voice transcription tool that respects privacy. Contributions are welcome.
+Thanks for your interest! Slovami AI is built by professionals who needed an offline voice transcription tool that respects privacy. Contributions are welcome.
 
 ## Ways to contribute
 
@@ -18,8 +18,8 @@ Requirements:
 - Android device (Android 8.0+) or emulator
 
 ```bash
-git clone https://github.com/<owner>/protocolvoice.git
-cd protocolvoice
+git clone https://github.com/timhdm/slovami-ai.git
+cd slovami-ai
 ./gradlew assembleDebug
 ```
 
@@ -46,7 +46,7 @@ For testing the downloader without re-installing on your device:
 
 ## What we're cautious about
 
-- **Network calls.** ProtocolVoice's selling point is "100% offline after setup". Any code adding telemetry, analytics, or remote features needs strong justification and an opt-in toggle.
+- **Network calls.** Slovami AI's selling point is "100% offline after setup". Any code adding telemetry, analytics, or remote features needs strong justification and an opt-in toggle.
 - **Permissions.** Don't add permissions without explicit user benefit.
 - **Dependency size.** Mobile users notice APK size. Justify any new heavy library.
 - **Model changes.** Updating ONNX models requires re-publishing GitHub Release with new SHA-256 — coordinate with maintainers.

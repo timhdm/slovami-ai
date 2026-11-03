@@ -1,4 +1,4 @@
-# Building ProtocolVoice
+# Building Slovami AI
 
 Use JDK 17 and Android SDK platform 34. Set `ANDROID_HOME` to the SDK folder
 or create an untracked `local.properties` with `sdk.dir`.
