@@ -54,7 +54,7 @@ Do not upload a debug-signed build as a production release.
 ## Models and licensing
 
 The app currently downloads some models from
-https://huggingface.co/protocolvoice/asr-models. This is an existing runtime
+https://huggingface.co/TimHdm/slovami-ai-models. This is an existing runtime
 dependency, not the Slovami AI GitHub repository. Do not change this URL
 until an independently hosted, verified model mirror is ready.
 
