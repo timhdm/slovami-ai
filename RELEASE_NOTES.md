@@ -23,7 +23,7 @@ All processing happens on your device. Your audio never leaves your phone.
 
 The ML models are not included in the APK to keep the install size small (~36 MB).
 On first run, the app downloads them from Hugging Face:
-https://huggingface.co/protocolvoice/asr-models
+https://huggingface.co/TimHdm/slovami-ai-models
 
 Total download: ~332 MB. Takes 1-3 minutes on a normal connection.
 
