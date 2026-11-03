@@ -87,7 +87,7 @@ This output has **zero hallucinations** — every output element is a direct cit
 Layered on top of the Default tier. Sends the extracted entities, top quotes, and trigger sentences to a local [QVikhr-2.5-1.5B-Instruct-r](https://huggingface.co/Vikhrmodels/QVikhr-2.5-1.5B-Instruct-r) (1.0 GB GGUF, runs via llama.cpp on-device) to produce a narrative-style summary across 6 sections (topic, participants, themes, risks, numbers, conclusions). Generation time: **~5 minutes** on Xiaomi 12T.
 
 PRO tier requires:
-1. A native llama.cpp library compiled for ARM64 (see [BUILD_NATIVE.md](app/src/main/java/app/protocolvoice/summary/pro_tier/BUILD_NATIVE.md))
+1. A native llama.cpp library compiled for ARM64 (see [BUILD_NATIVE.md](app/src/main/java/app/slovami/ai/summary/pro_tier/BUILD_NATIVE.md))
 2. User to manually download the QVikhr GGUF file
 
 In current builds the native library is not yet bundled — the UI displays "AI summary unavailable in this build" and only the Default tier runs.
@@ -185,7 +185,7 @@ The app downloads them on first launch and verifies SHA-256 against `manifest.js
 
 - [Architecture overview](docs/ARCHITECTURE.md)
 - [Building from source](docs/BUILDING.md)
-- [Building native llama.cpp library for PRO tier](app/src/main/java/app/protocolvoice/summary/pro_tier/BUILD_NATIVE.md)
+- [Building native llama.cpp library for PRO tier](app/src/main/java/app/slovami/ai/summary/pro_tier/BUILD_NATIVE.md)
 - [Contributing](CONTRIBUTING.md)
 
 ---
