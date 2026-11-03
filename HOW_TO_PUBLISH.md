@@ -28,7 +28,7 @@ Settings -> Secrets and variables -> Actions:
 - `DEBUG_KEYSTORE_PASSWORD`: password for that keystore
 - `DEBUG_KEY_PASSWORD`: password for the signing key
 
-The signing key alias is defined in `app/build.gradle.kts`.
+The signing key alias is `slovami-ai-debug` in `app/build.gradle.kts`.
 Keep the actual keystore and passwords out of Git and public documents.
 Do not paste secret values into issues or pull requests.
 
