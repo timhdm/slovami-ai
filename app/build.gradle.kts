@@ -27,7 +27,7 @@ android {
         create("ciDebug") {
             storeFile = file(System.getenv("DEBUG_KEYSTORE_PATH") ?: "missing-debug-keystore.jks")
             storePassword = System.getenv("DEBUG_KEYSTORE_PASSWORD")
-            keyAlias = "protocolvoice-debug"
+            keyAlias = "slovami-ai-debug"
             keyPassword = System.getenv("DEBUG_KEY_PASSWORD")
         }
     }
