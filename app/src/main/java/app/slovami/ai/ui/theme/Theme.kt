@@ -17,12 +17,12 @@ import androidx.core.view.WindowCompat
 import android.app.Activity
 
 /**
- * SlovamiAI — премиум-тёмная тема в стиле Linear / Notion / Vercel.
+ * Slovami AI — Electric Violet A1 dark theme.
  *
  * Дизайн-философия:
  * - **Always dark** — не подстраивается под системную тему. Premium-tools
  *   (Linear, Vercel) всегда тёмные, и это часть бренда.
- * - **Brand-colors** соответствуют иконке: blue #3B82F6 → purple #8B5CF6.
+ * - **Brand-colors** use Electric Violet #7B2FF7 and Neon Blue #4C6EFF.
  * - **Surface hierarchy** через elevation overlay: surface < surfaceContainer
  *   < surfaceContainerHigh — даёт depth без shadow'ов.
  * - **Status bar transparent** — для edge-to-edge experience.
@@ -33,11 +33,11 @@ import android.app.Activity
 // ────────────────────────────────────────────────────────────────────────
 
 /** Brand blue — основной для primary actions, активных элементов. */
-val BrandBlue = Color(0xFF3B82F6)
+val BrandBlue = Color(0xFF4C6EFF)
 /** Brand purple — для accent / secondary. */
-val BrandPurple = Color(0xFF8B5CF6)
+val BrandPurple = Color(0xFF7B2FF7)
 /** Brand cyan — для подсветки live-элементов (recording dot, waveform). */
-val BrandCyan = Color(0xFF06B6D4)
+val BrandCyan = Color(0xFF4C6EFF)
 /** Recording red — только для recording state. */
 val RecordingRed = Color(0xFFEF4444)
 
@@ -46,26 +46,26 @@ val RecordingRed = Color(0xFFEF4444)
 // ────────────────────────────────────────────────────────────────────────
 
 /** Самый тёмный — background всего приложения. */
-private val Surface0 = Color(0xFF0A0E1A)
+private val Surface0 = Color(0xFF0B0B12)
 /** Surface — контейнеры, карточки нижнего уровня. */
-private val Surface1 = Color(0xFF111827)
+private val Surface1 = Color(0xFF171226)
 /** SurfaceContainer — карточки сегментов. */
-private val Surface2 = Color(0xFF1E293B)
+private val Surface2 = Color(0xFF231A36)
 /** SurfaceContainerHigh — поднятые элементы (modal sheets, dialogs). */
-private val Surface3 = Color(0xFF334155)
+private val Surface3 = Color(0xFF322344)
 /** SurfaceContainerHighest — кнопки на тёмном, вспомогательные. */
-private val Surface4 = Color(0xFF475569)
+private val Surface4 = Color(0xFF43315D)
 
 // ────────────────────────────────────────────────────────────────────────
 // Text palette
 // ────────────────────────────────────────────────────────────────────────
 
 /** Основной текст — почти-белый. */
-private val TextPrimary = Color(0xFFF1F5F9)
+private val TextPrimary = Color(0xFFE9E6FF)
 /** Вторичный текст — для подсказок, меток. */
-private val TextSecondary = Color(0xFF94A3B8)
+private val TextSecondary = Color(0xFFB5ADC9)
 /** Третичный — отключённое, edge cases. */
-private val TextTertiary = Color(0xFF64748B)
+private val TextTertiary = Color(0xFF84799F)
 
 // ────────────────────────────────────────────────────────────────────────
 // Material3 ColorScheme
@@ -73,22 +73,22 @@ private val TextTertiary = Color(0xFF64748B)
 
 private val SlovamiAIColorScheme = darkColorScheme(
     // Primary — brand blue для главных CTA
-    primary             = BrandBlue,
+    primary             = BrandPurple,
     onPrimary           = Color.White,
-    primaryContainer    = Color(0xFF1E40AF),    // тёмно-синий для container'ов
-    onPrimaryContainer  = Color(0xFFDBEAFE),
+    primaryContainer    = Color(0xFF4B168B),    // тёмно-синий для container'ов
+    onPrimaryContainer  = Color(0xFFF3E8FF),
 
     // Secondary — brand purple для accent
-    secondary           = BrandPurple,
+    secondary           = BrandBlue,
     onSecondary         = Color.White,
-    secondaryContainer  = Color(0xFF5B21B6),
-    onSecondaryContainer= Color(0xFFEDE9FE),
+    secondaryContainer  = Color(0xFF253F95),
+    onSecondaryContainer= Color(0xFFE1E8FF),
 
     // Tertiary — cyan для подсветки live-элементов
     tertiary            = BrandCyan,
     onTertiary          = Color.White,
-    tertiaryContainer   = Color(0xFF0E7490),
-    onTertiaryContainer = Color(0xFFCFFAFE),
+    tertiaryContainer   = Color(0xFF2840B7),
+    onTertiaryContainer = Color(0xFFE1E8FF),
 
     // Error — мягкий red, не агрессивный
     error               = RecordingRed,
