@@ -1,60 +1,63 @@
-# Slovami AI model hosting migration
+# Slovami AI model hosting
 
-Status: PREPARATION ONLY. The Android app still downloads from the existing source.
-No URLs should be switched until the complete mirror passes verification.
+Independent public model repository: https://huggingface.co/TimHdm/slovami-ai-models
 
-## Source and scope
+## Migration status
 
-Source model repository: https://huggingface.co/protocolvoice/asr-models
+The nine model weights and the existing checksum manifest were duplicated on
+the Hugging Face server from the previous model repository. All nine paths
+and declared byte sizes were checked in the new public model repository.
 
-`ModelRegistry.kt` lists nine current downloadable files with nonzero SHA-256:
-Russian GigaAM, CAM++, ERes2Net V1/V2, Whisper EN encoder/decoder/tokens,
-Navec, and Slovnet NER. They remain unmodified when mirrored.
+The Android app's model registry now points to `TimHdm/slovami-ai-models` on
+this task branch. **Full SHA-256 verification and clean-install testing remain
+required before merging this branch into main.**
 
-QVikhr is NOT included: its registered SHA-256 is all zeros and its weights
-are not hosted in the existing source repository. Handle it separately.
+The optional QVikhr model is excluded because its SHA-256 is still zero and
+it is not part of the original nine-file model repository.
 
-Every model retains its upstream license and required attribution.
-Review `models/CREDITS.md` and upstream model cards before publishing.
-Do not label existing model weights as newly trained Slovami AI models.
+## Verify the copy on Windows
 
-## On a Windows computer
-
-Install the Hugging Face client:
+Install the CLI / Python client:
 
 ```powershell
-py -m pip install --upgrade huggingface_hub
+py -m pip install -U huggingface_hub
 hf auth login
 ```
 
-Create a separate PUBLIC Hugging Face *model* repository under an account
-you control, for example `YOUR_ACCOUNT/slovami-ai-models`.
-Public access is required for anonymous first-run downloads.
-
-From the Git checkout, first download and verify the files (stored outside
-the Git checkout by default):
+To check the actual bytes on the new server against the registered SHA-256,
+run from the Git checkout:
 
 ```powershell
-py tools/mirror-models.py
+py tools/mirror-models.py --source TimHdm/slovami-ai-models
 ```
 
-If all nine checksums match, mirror files to the repository you created:
+This downloads approximately 725 MB of model files into
+`$HOME/slovami-ai-model-mirror` outside the Git checkout, and checks all nine
+against the expected sizes and SHA-256 values. It does **not** modify the
+remote repository. The output must report that all nine hashes matched.
+
+## Update the model card
+
+The Hugging Face server-side duplication copied the former repository's
+README, which still mentions the old application's brand. This is metadata,
+not model weights. The new Slovami AI-specific model card lives in
+`models/HUGGINGFACE-README.md`. Upload only this file:
 
 ```powershell
-py tools/mirror-models.py --target YOUR_ACCOUNT/slovami-ai-models --upload
+hf upload TimHdm/slovami-ai-models models/HUGGINGFACE-README.md README.md --repo-type model
 ```
 
-The tool refuses private targets and checks that expected paths exist on the
-destination. Never put a Hugging Face token in source control or chat.
-Its default local files go to `$HOME/slovami-ai-model-mirror`.
+The model card preserves original model creators and licensing notices.
 
-Before the final app URL switch:
-1. Check each target download link using unauthenticated HTTP GET.
-2. Download samples back from the target, verify size and SHA-256.
-3. Check model redistribution terms, README and license/credit documents.
-4. Update only `ModelRegistry.HF_REPO` plus the user-visible hosting links.
-5. Install Slovami AI with fresh app data and test RU/EN first-run downloads,
-   optional embeddings, cancellation/resume, and offline recognition.
-6. Build, run unit tests, use Pull Request then Squash and Merge.
+## Final QA before Squash and Merge
 
-Do not remove the old download source while installed app versions still rely on it.
+1. Verify all nine model SHA-256 values locally from the new repository.
+2. Confirm the new public model card renders correctly.
+3. Run GitHub Actions for the Android branch (APK build and unit tests).
+4. Install fresh debug APK and test the initial RU model download.
+5. Test EN models and optional speaker embeddings as applicable.
+6. Verify the downloader's retry/resume and offline inference.
+7. Merge via Squash and Merge and automatically delete the task branch.
+
+Older installed app versions may still depend on the previous repository.
+Do not attempt to disable or remove that service.
