@@ -139,7 +139,7 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 ### First launch
 
 1. Grant microphone + notifications permissions
-2. Tap "Скачать" (Download) — models will be fetched from Hugging Face (`protocolvoice/asr-models`)
+2. Tap "Скачать" (Download) — models will be fetched from Hugging Face (`TimHdm/slovami-ai-models`)
 3. Once complete, you're ready to record
 
 ---
@@ -175,7 +175,7 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 
 ## Models
 
-All models hosted on Hugging Face: [protocolvoice/asr-models](https://huggingface.co/protocolvoice/asr-models)
+All models hosted on Hugging Face: [TimHdm/slovami-ai-models](https://huggingface.co/TimHdm/slovami-ai-models)
 
 The app downloads them on first launch and verifies SHA-256 against `manifest.json` in the same repository.
 
