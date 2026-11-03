@@ -41,7 +41,7 @@ def verify(file: Path, size: int, expected_hash: str) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--directory", type=Path, default=Path("model-mirror"))
+    parser.add_argument("--directory", type=Path, default=Path.home() / "slovami-ai-model-mirror")
     parser.add_argument("--target", help="Owned Hugging Face model repository, e.g. USER/slovami-ai-models")
     parser.add_argument("--upload", action="store_true", help="Upload verified files to --target")
     args = parser.parse_args()
