@@ -1,4 +1,4 @@
-# Downloads the latest workflow run for this branch and installs its signed debug APK.
+# Downloads the latest successful workflow run for this branch and installs its signed debug APK.
 # Requirements: GitHub CLI (gh), Android platform-tools (adb), connected Android device.
 param(
     [string]$Repository = 'timhdm/slovami-ai',
@@ -22,11 +22,11 @@ $runsJson = & gh run list --repo $Repository --workflow android.yml --branch $Br
 if ($LASTEXITCODE -ne 0) { throw 'Could not list GitHub Actions runs.' }
 $runs = @($runsJson | ConvertFrom-Json)
 $run = $runs |
-    Where-Object { $_.event -in @('push', 'workflow_dispatch') } |
+    Where-Object { $_.event -in @('push', 'workflow_dispatch', 'pull_request') -and $_.conclusion -eq 'success' } |
     Sort-Object createdAt -Descending |
     Select-Object -First 1
 
-if (-not $run) { throw "No workflow runs found for branch $Branch." }
+if (-not $run) { throw "No successful Android checks found for branch $Branch. Check gh run list -R $Repository --branch $Branch." }
 
 Write-Host "Workflow run: $($run.databaseId), commit: $($run.headSha)"
 if ($run.status -ne 'completed') {
