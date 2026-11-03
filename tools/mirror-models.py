@@ -15,7 +15,7 @@ from pathlib import Path
 
 from huggingface_hub import HfApi, hf_hub_download
 
-SOURCE = "protocolvoice/asr-models"
+SOURCE = "TimHdm/slovami-ai-models"
 # Relative path, exact byte size, exact expected SHA-256 from ModelRegistry.kt.
 MODELS = {
     "gigaam_v3_e2e_ctc_int8.onnx": (319869121, "0aacb41f70f0f5aaac4b45dd430337b9e16b180f22c72af04db8516e7609c3c0"),
