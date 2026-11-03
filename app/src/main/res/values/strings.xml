@@ -262,7 +262,7 @@
     <string name="about_ack_sherpa_url">github.com/k2-fsa/sherpa-onnx</string>
     <string name="about_ack_huggingface_title">Hugging Face</string>
     <string name="about_ack_huggingface_desc">Хостинг ML-моделей, использованных в приложении.</string>
-    <string name="about_ack_huggingface_url">huggingface.co/protocolvoice/asr-models</string>
+    <string name="about_ack_huggingface_url">huggingface.co/TimHdm/slovami-ai-models</string>
     <string name="about_section_license">Лицензия</string>
     <string name="about_license_text">Приложение распространяется под лицензией Apache 2.0. Исходный код доступен на GitHub.</string>
     <string name="about_back">Назад</string>

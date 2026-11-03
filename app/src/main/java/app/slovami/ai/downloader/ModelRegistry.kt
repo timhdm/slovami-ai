@@ -13,7 +13,7 @@ package app.slovami.ai.downloader
  *  - tier          : группа: REQUIRED, DEFAULT_EMBEDDING, OPTIONAL_EMBEDDING
  *
  * Хостинг моделей: Hugging Face.
- * URL pattern: https://huggingface.co/protocolvoice/asr-models/resolve/main/{FILE}
+ * URL pattern: https://huggingface.co/TimHdm/slovami-ai-models/resolve/main/{FILE}
  *
  * Почему Hugging Face, а не GitHub Releases:
  *  - Нативная поддержка файлов >100 МБ без git-lfs ограничений
@@ -37,9 +37,9 @@ object ModelRegistry {
 
     /**
      * Hugging Face организация и репозиторий где лежат модели.
-     * URL: https://huggingface.co/protocolvoice/asr-models
+     * URL: https://huggingface.co/TimHdm/slovami-ai-models
      */
-    const val HF_REPO = "protocolvoice/asr-models"
+    const val HF_REPO = "TimHdm/slovami-ai-models"
 
     /**
      * Branch/revision в репо с моделями. На HF обычно "main".
