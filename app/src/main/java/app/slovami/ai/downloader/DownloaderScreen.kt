@@ -139,12 +139,12 @@ fun DownloaderScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp, vertical = 76.dp),
+                    .padding(horizontal = 24.dp, vertical = if (phase == DownloaderViewModel.Phase.DOWNLOADING) 20.dp else 76.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
                 BrandHeader()
-                Spacer(Modifier.height(42.dp))
+                Spacer(Modifier.height(if (phase == DownloaderViewModel.Phase.DOWNLOADING) 26.dp else 42.dp))
                 when (phase) {
                     DownloaderViewModel.Phase.CHECKING -> CheckingState()
                     DownloaderViewModel.Phase.NEEDS_DOWNLOAD -> {
@@ -322,12 +322,8 @@ private fun DownloadingState(
     currentModelBytes: Long,
     onCancel: () -> Unit,
 ) {
-    Icon(Icons.Default.GraphicEq, contentDescription = null, tint = ElectricViolet.accent, modifier = Modifier.size(125.dp))
-    Spacer(Modifier.height(30.dp))
-    Text(stringResource(R.string.downloader_downloading_title), color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-    Spacer(Modifier.height(12.dp))
-    Text("Загружаются модели для офлайн-работы", color = ElectricViolet.text, textAlign = TextAlign.Center)
-    Spacer(Modifier.height(26.dp))
+    Text("Загрузка моделей", color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+    Spacer(Modifier.height(22.dp))
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val language = remember(ctx) {
         ctx.getSharedPreferences("interview_prefs", android.content.Context.MODE_PRIVATE)
@@ -339,14 +335,9 @@ private fun DownloadingState(
         currentModelBytes = currentModelBytes,
         showProgress = true,
     )
-    Spacer(Modifier.height(14.dp))
-    Text("Всего: ${formatBytes(bytesDownloaded)} / ${formatBytes(bytesTotal)} · ${(progress * 100).toInt()} %", color = ElectricViolet.text, fontSize = 14.sp)
-    if (speedBps > 0) Text("Скорость: ${formatBytes(speedBps)}/с", color = ElectricViolet.text, fontSize = 13.sp)
+    Spacer(Modifier.height(20.dp))
+    Text("Загружено: ${(progress * 100).toInt()} %", color = ElectricViolet.text, fontSize = 15.sp)
     Spacer(Modifier.height(24.dp))
-    Text("Скачивание", color = ElectricViolet.text)
-    Spacer(Modifier.height(8.dp))
-    Text("После загрузки файлы будут проверены и подготовлены", color = ElectricViolet.text, fontSize = 13.sp, textAlign = TextAlign.Center)
-    Spacer(Modifier.height(28.dp))
     OutlinedButton(onClick = onCancel, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(22.dp), border = androidx.compose.foundation.BorderStroke(1.dp, ElectricViolet.violet)) {
         Text(stringResource(R.string.downloader_cancel), color = ElectricViolet.text)
     }
