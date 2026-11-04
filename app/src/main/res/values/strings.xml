@@ -219,8 +219,8 @@
     <!-- Downloader (экран скачивания моделей при первом запуске) -->
     <!-- =================================================== -->
     <string name="downloader_checking">Проверяем модели…</string>
-    <string name="downloader_welcome_title">Подготовка к работе</string>
-    <string name="downloader_welcome_message">Для работы оффлайн нужно разово скачать модели распознавания речи. После этого приложение работает без интернета.</string>
+    <string name="downloader_welcome_title">Почти готово!</string>
+    <string name="downloader_welcome_message">Скачайте модели — специальные файлы, которые помогают приложению распознавать речь и различать голоса. После загрузки приложение сможет работать без интернета.</string>
     <string name="downloader_size_title">Размер загрузки</string>
     <string name="downloader_size_value">%1$s — скачивается один раз</string>
     <string name="downloader_start_action">Скачать</string>
