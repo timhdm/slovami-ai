@@ -297,8 +297,10 @@ fun InterviewScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onOpenHistory) {
-                        Icon(Icons.Default.History, contentDescription = stringResource(R.string.action_history))
+                    if (phase != InterviewViewModel.Phase.IDLE) {
+                        IconButton(onClick = onOpenHistory) {
+                            Icon(Icons.Default.History, contentDescription = stringResource(R.string.action_history))
+                        }
                     }
                     // Кнопка импорта аудиофайла — видна в фазах IDLE/ERROR.
                     if (phase == InterviewViewModel.Phase.ERROR) {
@@ -337,6 +339,22 @@ fun InterviewScreen(
                             expanded = showOverflowMenu,
                             onDismissRequest = { showOverflowMenu = false },
                         ) {
+                            if (phase == InterviewViewModel.Phase.IDLE) {
+                                DropdownMenuItem(
+                                    text = { Text("Параметры записи") },
+                                    onClick = {
+                                        showOverflowMenu = false
+                                        showMetadataSheet = true
+                                    },
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Участники") },
+                                    onClick = {
+                                        showOverflowMenu = false
+                                        showParticipantsSheet = true
+                                    },
+                                )
+                            }
                             DropdownMenuItem(
                                 text = {
                                     Text("Язык распознавания: " + if (asrLanguage == AsrLanguage.EN) "EN" else "RU")
@@ -442,8 +460,6 @@ fun InterviewScreen(
                     onImportAudio = { audioPicker.launch(arrayOf("audio/*")) },
                     onOpenHistory = onOpenHistory,
                     onOpenSession = { id -> vm.loadFromHistory(id) },
-                    onEditMetadata = { showMetadataSheet = true },
-                    onEditParticipants = { showParticipantsSheet = true },
                     modifier = Modifier.fillMaxSize(),
                 )
             } else {
