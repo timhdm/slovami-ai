@@ -118,8 +118,6 @@ class DownloaderViewModel(app: Application) : AndroidViewModel(app) {
      * Повторная попытка после ошибки.
      */
     fun retry() {
-        DownloadService.cancel(getApplication())
-        // Маленькая пауза не нужна — start обработает корректно
         DownloadService.start(getApplication())
     }
 

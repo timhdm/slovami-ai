@@ -16,6 +16,7 @@ import app.slovami.ai.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,6 +50,7 @@ class DownloadService : Service() {
     private lateinit var storage: ModelStorage
     private lateinit var downloader: ModelDownloader
     private var progressUpdateJob: Job? = null
+    private var retryRequested = false
 
     override fun onCreate() {
         super.onCreate()
@@ -71,7 +73,9 @@ class DownloadService : Service() {
         super.onDestroy()
         progressUpdateJob?.cancel()
         scope.cancel()
-        _serviceState.value = ServiceState.IDLE
+        if (_serviceState.value == ServiceState.DOWNLOADING) {
+            _serviceState.value = ServiceState.IDLE
+        }
     }
 
     // ────────────────────────────────────────────────────────────────────
@@ -80,10 +84,16 @@ class DownloadService : Service() {
 
     private fun startDownload() {
         if (downloadJob?.isActive == true) {
-            Log.i(TAG, "Download already in progress, ignoring start request")
+            if (_serviceState.value == ServiceState.ERROR) retryRequested = true
+            Log.i(TAG, "Download already in progress; retry queued=$retryRequested")
             return
         }
         Log.i(TAG, "Starting download of first-run models")
+        _errorMessage.value = null
+        _bytesDownloaded.value = 0L
+        _bytesTotal.value = 0L
+        _speedBps.value = 0L
+        _currentModelId.value = null
         _serviceState.value = ServiceState.DOWNLOADING
 
         // Поднимаем foreground с initial notification
@@ -131,18 +141,29 @@ class DownloadService : Service() {
                 } else {
                     Log.w(TAG, "Download failed: ${downloader.errorMessage.value}")
                     _serviceState.value = ServiceState.ERROR
-                    _errorMessage.value = downloader.errorMessage.value
+                    _errorMessage.value = "Не удалось скачать модели. Проверьте подключение и повторите попытку."
                     showCompletionNotification(success = false)
                 }
-            } catch (e: Throwable) {
+            } catch (e: CancellationException) {
+                Log.i(TAG, "Download cancelled")
+                _serviceState.value = ServiceState.CANCELLED
+            } catch (e: Exception) {
                 Log.e(TAG, "Download crashed", e)
                 _serviceState.value = ServiceState.ERROR
-                _errorMessage.value = e.message
+                _errorMessage.value = "Не удалось скачать модели. Проверьте подключение и повторите попытку."
                 showCompletionNotification(success = false)
             } finally {
                 progressUpdateJob?.cancel()
-                stopForeground(STOP_FOREGROUND_DETACH) // notification остаётся
-                stopSelf()
+                if (retryRequested && _serviceState.value != ServiceState.CANCELLED) {
+                    retryRequested = false
+                    downloadJob = null
+                    android.os.Handler(android.os.Looper.getMainLooper()).post { startDownload() }
+                } else if (_serviceState.value == ServiceState.CANCELLED) {
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                } else {
+                    stopForeground(STOP_FOREGROUND_DETACH)
+                }
+                if (downloadJob != null) stopSelf()
             }
         }
     }
@@ -155,7 +176,8 @@ class DownloadService : Service() {
         // Удаляем notification
         getSystemService(NotificationManager::class.java).cancel(NOTIFICATION_ID)
         stopForeground(STOP_FOREGROUND_REMOVE)
-        stopSelf()
+        // Завершение сервиса выполняется после выхода downloadJob из finally.
+        if (downloadJob?.isActive != true) stopSelf()
     }
 
     // ────────────────────────────────────────────────────────────────────

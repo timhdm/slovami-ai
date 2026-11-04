@@ -2,6 +2,7 @@ package app.slovami.ai.downloader
 
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -142,7 +143,9 @@ class ModelDownloader(
                     // удалим .partial и попробуем ещё раз
                     storage.partialFileFor(model).delete()
                 }
-            } catch (e: Throwable) {
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
                 lastError = e.message ?: e.javaClass.simpleName
                 Log.w(TAG, "Download attempt $attempt failed for ${model.id}: $lastError", e)
                 // Сохраняем .partial для следующей попытки (resume)
