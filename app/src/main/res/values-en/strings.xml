@@ -213,11 +213,11 @@
     <!-- Downloader (model download screen on first launch) -->
     <!-- =================================================== -->
     <string name="downloader_checking">Checking models…</string>
-    <string name="downloader_welcome_title">Setting up</string>
-    <string name="downloader_welcome_message">To work offline you need to download the speech recognition models once. After that the app runs without internet.</string>
+    <string name="downloader_welcome_title">Almost ready!</string>
+    <string name="downloader_welcome_message">Download models — special files that help the app recognize speech and distinguish voices. After downloading, the app can work without an internet connection.</string>
     <string name="downloader_size_title">Download size</string>
     <string name="downloader_size_value">%1$s — one-time download</string>
-    <string name="downloader_start_action">Download models</string>
+    <string name="downloader_start_action">Download</string>
     <string name="downloader_downloading_title">Downloading…</string>
     <string name="downloader_speed">%1$s/s</string>
     <string name="downloader_label_asr">Speech recognition model</string>

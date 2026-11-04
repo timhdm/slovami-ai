@@ -46,7 +46,7 @@ class ModelDownloader(
     private val _currentModelId = MutableStateFlow<String?>(null)
     val currentModelId: StateFlow<String?> = _currentModelId.asStateFlow()
 
-    /** Скачано байт суммарно в текущей сессии. */
+    /** Сумма сохранённых байт для ожидающих моделей, включая .partial. */
     private val _bytesDownloaded = MutableStateFlow(0L)
     val bytesDownloaded: StateFlow<Long> = _bytesDownloaded.asStateFlow()
 
@@ -101,8 +101,12 @@ class ModelDownloader(
             return@withContext true
         }
         _bytesTotal.value = pending.sumOf { it.sizeBytes }
-        _bytesDownloaded.value = 0L
+        _bytesDownloaded.value = pending.sumOf { model ->
+            storage.partialFileFor(model).takeIf { it.exists() }
+                ?.length()?.coerceIn(0L, model.sizeBytes) ?: 0L
+        }
         _currentModelBytes.value = 0L
+        _speedBps.value = 0L
 
         for (model in pending) {
             if (!coroutineContext.isActive) {
@@ -139,6 +143,11 @@ class ModelDownloader(
         for (attempt in 1..maxAttempts) {
             if (!coroutineContext.isActive) return false
             try {
+                // Файл мог быть удалён после неудачной проверки предыдущей попытки.
+                updateCurrentModelProgress(
+                    model,
+                    storage.partialFileFor(model).takeIf { it.exists() }?.length() ?: 0L,
+                )
                 downloadOne(model)
                 // Успех — переходим к верификации
                 if (verifyAndPromote(model)) {
@@ -196,7 +205,7 @@ class ModelDownloader(
             }
             // Если сервер не поддерживает Range и вернул 200 — стартуем заново
             val actualStartFrom = if (responseCode == 206) startFrom else 0L
-            _currentModelBytes.value = actualStartFrom
+            updateCurrentModelProgress(model, actualStartFrom)
             if (actualStartFrom == 0L && partial.exists()) {
                 partial.delete()
             }
@@ -225,9 +234,8 @@ class ModelDownloader(
                     if (n <= 0) break
                     output.write(buf, 0, n)
                     modelDownloaded += n
-                    _currentModelBytes.value = modelDownloaded.coerceAtMost(model.sizeBytes)
+                    updateCurrentModelProgress(model, modelDownloaded)
                     totalReadInSession += n
-                    _bytesDownloaded.value += n
 
                     // Обновляем скорость раз в ~500ms
                     val now = System.currentTimeMillis()
@@ -255,6 +263,18 @@ class ModelDownloader(
         } finally {
             conn.disconnect()
         }
+    }
+
+    /**
+     * Обновить общий прогресс на разницу с сохранённым объёмом текущей модели.
+     * Это учитывает resume и откат, если сервер игнорирует Range или файл удалён.
+     */
+    private fun updateCurrentModelProgress(model: ModelRegistry.Model, bytes: Long) {
+        val next = bytes.coerceIn(0L, model.sizeBytes)
+        val previous = _currentModelBytes.value
+        _bytesDownloaded.value = (_bytesDownloaded.value + next - previous)
+            .coerceIn(0L, _bytesTotal.value)
+        _currentModelBytes.value = next
     }
 
     /**
