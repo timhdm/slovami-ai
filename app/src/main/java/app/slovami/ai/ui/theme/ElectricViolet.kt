@@ -61,31 +61,28 @@ fun ElectricVioletPrimaryButton(
     enabled: Boolean = true,
 ) {
     val shape = RoundedCornerShape(18.dp)
-    Surface(
-        modifier = modifier.defaultMinSize(minHeight = 54.dp),
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier
+            .defaultMinSize(minHeight = 54.dp)
+            .background(
+                if (enabled) ElectricViolet.primaryGradient
+                else Brush.horizontalGradient(listOf(Color.DarkGray, Color.Gray)),
+                shape,
+            ),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent,
+            disabledContainerColor = Color.Transparent,
+        ),
         shape = shape,
-        color = Color.Transparent,
+        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
     ) {
-        Box(modifier = Modifier.background(
-            if (enabled) ElectricViolet.primaryGradient
-            else Brush.horizontalGradient(listOf(Color.DarkGray, Color.Gray)),
-            shape,
-        )) {
-            Button(
-                onClick = onClick,
-                enabled = enabled,
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                shape = shape,
-                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
-                modifier = Modifier.align(Alignment.Center),
-            ) {
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = ElectricViolet.text,
-                )
-            }
-        }
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = ElectricViolet.text,
+        )
     }
 }

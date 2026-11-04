@@ -342,12 +342,6 @@ private fun ModelSetupState(
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
-        } else {
-            Text(
-                "Всего: ${formatBytes(totalBytes)}",
-                color = ElectricViolet.text, fontSize = 14.sp, textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-            )
         }
     }
     Spacer(Modifier.height(22.dp))
