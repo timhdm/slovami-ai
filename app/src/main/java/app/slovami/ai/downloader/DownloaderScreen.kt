@@ -1,5 +1,9 @@
 package app.slovami.ai.downloader
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -139,35 +143,34 @@ fun DownloaderScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp, vertical = if (phase == DownloaderViewModel.Phase.DOWNLOADING) 20.dp else 76.dp),
+                    .padding(horizontal = 24.dp, vertical = 28.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
                 BrandHeader()
-                Spacer(Modifier.height(if (phase == DownloaderViewModel.Phase.DOWNLOADING) 26.dp else 42.dp))
+                Spacer(Modifier.height(32.dp))
                 when (phase) {
                     DownloaderViewModel.Phase.CHECKING -> CheckingState()
-                    DownloaderViewModel.Phase.NEEDS_DOWNLOAD -> {
-                        // Читаем выбранный язык из prefs чтобы показать правильный размер скачивания.
-                        // Обновляется при смене языка через LaunchedEffect (Activity пересоздаётся).
-                        val selectedLang = remember {
+                    DownloaderViewModel.Phase.NEEDS_DOWNLOAD,
+                    DownloaderViewModel.Phase.DOWNLOADING -> {
+                        val selectedLang = remember(ctx) {
                             val prefs = ctx.getSharedPreferences("interview_prefs", android.content.Context.MODE_PRIVATE)
                             prefs.getString("asr_language", "RU") ?: "RU"
                         }
-                        WelcomeState(
+                        ModelSetupState(
+                            models = ModelRegistry.firstRunModelsFor(selectedLang),
+                            downloading = phase == DownloaderViewModel.Phase.DOWNLOADING,
                             totalBytes = ModelRegistry.firstRunTotalBytesFor(selectedLang),
+                            progress = progress,
+                            bytesDownloaded = bytesDownloaded,
+                            bytesTotal = bytesTotal,
+                            speedBps = speedBps,
+                            currentModelId = currentModelId,
+                            currentModelBytes = currentModelBytes,
                             onStart = { vm.startFirstRunDownload() },
+                            onCancel = { vm.cancel() },
                         )
                     }
-                    DownloaderViewModel.Phase.DOWNLOADING -> DownloadingState(
-                        progress = progress,
-                        bytesDownloaded = bytesDownloaded,
-                        bytesTotal = bytesTotal,
-                        speedBps = speedBps,
-                        currentModelId = currentModelId,
-                        currentModelBytes = currentModelBytes,
-                        onCancel = { vm.cancel() },
-                    )
                     DownloaderViewModel.Phase.SUCCESS -> SuccessState()
                     DownloaderViewModel.Phase.ERROR -> ErrorState(
                         message = errorMessage,
@@ -291,55 +294,78 @@ private fun ModelDownloadList(
 }
 
 @Composable
-private fun WelcomeState(totalBytes: Long, onStart: () -> Unit) {
-    Icon(Icons.Default.CloudDownload, contentDescription = null, tint = ElectricViolet.accent, modifier = Modifier.size(130.dp))
-    Spacer(Modifier.height(28.dp))
-    Text(stringResource(R.string.downloader_welcome_title), color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-    Spacer(Modifier.height(16.dp))
-    Text(stringResource(R.string.downloader_welcome_message), color = ElectricViolet.text, fontSize = 15.sp, lineHeight = 22.sp, textAlign = TextAlign.Center)
-    Spacer(Modifier.height(26.dp))
-    val ctx = androidx.compose.ui.platform.LocalContext.current
-    val language = remember(ctx) {
-        ctx.getSharedPreferences("interview_prefs", android.content.Context.MODE_PRIVATE)
-            .getString("asr_language", "RU")
-    }
-    Text("Модели для загрузки", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-    Spacer(Modifier.height(12.dp))
-    ModelDownloadList(models = ModelRegistry.firstRunModelsFor(language))
-    Spacer(Modifier.height(12.dp))
-    Text("Всего: ${formatBytes(totalBytes)}", color = ElectricViolet.text, fontSize = 14.sp)
-    Spacer(Modifier.height(26.dp))
-    ElectricVioletPrimaryButton(text = stringResource(R.string.downloader_start_action), onClick = onStart, modifier = Modifier.fillMaxWidth())
-}
-
-@Composable
-private fun DownloadingState(
+private fun ModelSetupState(
+    models: List<ModelRegistry.Model>,
+    downloading: Boolean,
+    totalBytes: Long,
     progress: Float,
     bytesDownloaded: Long,
     bytesTotal: Long,
     speedBps: Long,
     currentModelId: String?,
     currentModelBytes: Long,
+    onStart: () -> Unit,
     onCancel: () -> Unit,
 ) {
-    Text("Загрузка моделей", color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-    Spacer(Modifier.height(22.dp))
-    val ctx = androidx.compose.ui.platform.LocalContext.current
-    val language = remember(ctx) {
-        ctx.getSharedPreferences("interview_prefs", android.content.Context.MODE_PRIVATE)
-            .getString("asr_language", "RU")
-    }
-    ModelDownloadList(
-        models = ModelRegistry.firstRunModelsFor(language),
-        currentModelId = currentModelId,
-        currentModelBytes = currentModelBytes,
-        showProgress = true,
+    Icon(Icons.Default.CloudDownload, contentDescription = null, tint = ElectricViolet.accent, modifier = Modifier.size(104.dp))
+    Spacer(Modifier.height(18.dp))
+    Text(
+        if (downloading) "Загрузка моделей" else stringResource(R.string.downloader_welcome_title),
+        color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
+    )
+    Spacer(Modifier.height(12.dp))
+    Text(
+        if (downloading) "Подготавливаем модели для работы без интернета"
+        else stringResource(R.string.downloader_welcome_message),
+        color = ElectricViolet.text, fontSize = 15.sp, lineHeight = 21.sp, textAlign = TextAlign.Center,
     )
     Spacer(Modifier.height(20.dp))
-    Text("Загружено: ${(progress * 100).toInt()} %", color = ElectricViolet.text, fontSize = 15.sp)
-    Spacer(Modifier.height(24.dp))
-    OutlinedButton(onClick = onCancel, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(22.dp), border = androidx.compose.foundation.BorderStroke(1.dp, ElectricViolet.violet)) {
-        Text(stringResource(R.string.downloader_cancel), color = ElectricViolet.text)
+    Column(modifier = Modifier.fillMaxWidth().animateContentSize()) {
+        ModelDownloadList(
+            models = models,
+            currentModelId = currentModelId,
+            currentModelBytes = currentModelBytes,
+            showProgress = downloading,
+        )
+        Spacer(Modifier.height(12.dp))
+        if (downloading) {
+            Text(
+                "Всего: ${formatBytes(bytesDownloaded)} / ${formatBytes(bytesTotal.takeIf { it > 0 } ?: totalBytes)} · ${(progress * 100).toInt()} %",
+                color = ElectricViolet.text, fontSize = 13.sp, textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            if (speedBps > 0) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "Скорость: ${formatBytes(speedBps)}/с",
+                    color = ElectricViolet.text, fontSize = 13.sp, textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        } else {
+            Text(
+                "Всего: ${formatBytes(totalBytes)}",
+                color = ElectricViolet.text, fontSize = 14.sp, textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+    Spacer(Modifier.height(22.dp))
+    if (downloading) {
+        OutlinedButton(
+            onClick = onCancel,
+            modifier = Modifier.fillMaxWidth().height(54.dp),
+            shape = RoundedCornerShape(22.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, ElectricViolet.violet),
+        ) {
+            Text(stringResource(R.string.downloader_cancel), color = ElectricViolet.text)
+        }
+    } else {
+        ElectricVioletPrimaryButton(
+            text = stringResource(R.string.downloader_start_action),
+            onClick = onStart,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 
