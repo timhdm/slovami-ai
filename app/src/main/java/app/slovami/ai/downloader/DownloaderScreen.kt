@@ -91,6 +91,7 @@ fun DownloaderScreen(
     val bytesTotal by vm.bytesTotal.collectAsStateWithLifecycle()
     val speedBps by vm.speedBps.collectAsStateWithLifecycle()
     val currentModelId by vm.currentModelId.collectAsStateWithLifecycle()
+    val currentModelBytes by vm.currentModelBytes.collectAsStateWithLifecycle()
     val errorMessage by vm.errorMessage.collectAsStateWithLifecycle()
 
     // Состояние диалога подтверждения выхода
@@ -164,6 +165,7 @@ fun DownloaderScreen(
                         bytesTotal = bytesTotal,
                         speedBps = speedBps,
                         currentModelId = currentModelId,
+                        currentModelBytes = currentModelBytes,
                         onCancel = { vm.cancel() },
                     )
                     DownloaderViewModel.Phase.SUCCESS -> SuccessState()
@@ -242,21 +244,70 @@ private fun CheckingState() {
     Text(stringResource(R.string.downloader_checking), color = ElectricViolet.text)
 }
 
+
+@Composable
+private fun ModelDownloadList(
+    models: List<ModelRegistry.Model>,
+    currentModelId: String? = null,
+    currentModelBytes: Long = 0L,
+    showProgress: Boolean = false,
+) {
+    ElectricVioletCard(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            models.forEachIndexed { index, model ->
+                val label = when (model.id) {
+                    "asr_gigaam_v3" -> "GigaAM v3 · распознавание речи"
+                    "embedding_camplus" -> "CAM++ · разделение голосов"
+                    "asr_en_encoder" -> "Whisper · кодировщик"
+                    "asr_en_decoder" -> "Whisper · декодер"
+                    "asr_en_tokens" -> "Whisper · словарь"
+                    else -> model.filename
+                }
+                val active = showProgress && currentModelId == model.id
+                val done = showProgress && currentModelId != null &&
+                    models.indexOfFirst { it.id == currentModelId } > index
+                val amount = when {
+                    done -> model.sizeBytes
+                    active -> currentModelBytes.coerceIn(0L, model.sizeBytes)
+                    else -> 0L
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(label, color = Color.White, fontSize = 14.sp, modifier = Modifier.weight(1f))
+                    Spacer(Modifier.width(8.dp))
+                    Text(formatBytes(model.sizeBytes), color = ElectricViolet.text, fontSize = 13.sp)
+                }
+                if (showProgress) {
+                    LinearProgressIndicator(
+                        progress = { (amount.toFloat() / model.sizeBytes.coerceAtLeast(1)).coerceIn(0f, 1f) },
+                        modifier = Modifier.fillMaxWidth().height(5.dp).clip(RoundedCornerShape(5.dp)),
+                        color = ElectricViolet.accent,
+                        trackColor = ElectricViolet.cardBorder,
+                    )
+                    if (active) Text("${formatBytes(amount)} / ${formatBytes(model.sizeBytes)}", color = ElectricViolet.text, fontSize = 12.sp)
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun WelcomeState(totalBytes: Long, onStart: () -> Unit) {
     Icon(Icons.Default.CloudDownload, contentDescription = null, tint = ElectricViolet.accent, modifier = Modifier.size(130.dp))
     Spacer(Modifier.height(28.dp))
-    Text(stringResource(R.string.downloader_welcome_title), color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+    Text(stringResource(R.string.downloader_welcome_title), color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
     Spacer(Modifier.height(16.dp))
-    Text(stringResource(R.string.downloader_welcome_message), color = ElectricViolet.text, fontSize = 16.sp, lineHeight = 24.sp, textAlign = TextAlign.Center)
+    Text(stringResource(R.string.downloader_welcome_message), color = ElectricViolet.text, fontSize = 15.sp, lineHeight = 22.sp, textAlign = TextAlign.Center)
     Spacer(Modifier.height(26.dp))
-    ElectricVioletCard(modifier = Modifier.fillMaxWidth()) {
-        Column {
-            Text(stringResource(R.string.downloader_size_title), color = Color.White, fontWeight = FontWeight.SemiBold)
-            Spacer(Modifier.height(6.dp))
-            Text(stringResource(R.string.downloader_size_value, formatBytes(totalBytes)), color = ElectricViolet.text)
-        }
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val language = remember(ctx) {
+        ctx.getSharedPreferences("interview_prefs", android.content.Context.MODE_PRIVATE)
+            .getString("asr_language", "RU")
     }
+    Text("Модели для загрузки", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+    Spacer(Modifier.height(12.dp))
+    ModelDownloadList(models = ModelRegistry.firstRunModelsFor(language))
+    Spacer(Modifier.height(12.dp))
+    Text("Всего: ${formatBytes(totalBytes)}", color = ElectricViolet.text, fontSize = 14.sp)
     Spacer(Modifier.height(26.dp))
     ElectricVioletPrimaryButton(text = stringResource(R.string.downloader_start_action), onClick = onStart, modifier = Modifier.fillMaxWidth())
 }
@@ -268,6 +319,7 @@ private fun DownloadingState(
     bytesTotal: Long,
     speedBps: Long,
     currentModelId: String?,
+    currentModelBytes: Long,
     onCancel: () -> Unit,
 ) {
     Icon(Icons.Default.GraphicEq, contentDescription = null, tint = ElectricViolet.accent, modifier = Modifier.size(125.dp))
@@ -276,32 +328,20 @@ private fun DownloadingState(
     Spacer(Modifier.height(12.dp))
     Text("Загружаются модели для офлайн-работы", color = ElectricViolet.text, textAlign = TextAlign.Center)
     Spacer(Modifier.height(26.dp))
-    ElectricVioletCard(modifier = Modifier.fillMaxWidth()) {
-        Column {
-            val modelLabel = when (currentModelId) {
-                "asr_gigaam_v3" -> stringResource(R.string.downloader_label_asr)
-                "embedding_camplus" -> stringResource(R.string.downloader_label_camplus)
-                "embedding_v1" -> stringResource(R.string.downloader_label_v1)
-                "embedding_v2" -> stringResource(R.string.downloader_label_v2)
-                "asr_en_encoder" -> "Whisper encoder"
-                "asr_en_decoder" -> "Whisper decoder"
-                "asr_en_tokens" -> "Whisper tokens"
-                null -> stringResource(R.string.downloader_downloading_title)
-                else -> currentModelId
-            }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text(modelLabel, color = Color.White, modifier = Modifier.weight(1f))
-                Text("${(progress * 100).toInt()} %", color = ElectricViolet.accent, fontWeight = FontWeight.Bold)
-            }
-            Spacer(Modifier.height(16.dp))
-            LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(8.dp)), color = ElectricViolet.violet, trackColor = ElectricViolet.cardBorder)
-            Spacer(Modifier.height(12.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("${formatBytes(bytesDownloaded)} / ${formatBytes(bytesTotal)}", color = ElectricViolet.text)
-                if (speedBps > 0) Text("${formatBytes(speedBps)}/с", color = ElectricViolet.accent)
-            }
-        }
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val language = remember(ctx) {
+        ctx.getSharedPreferences("interview_prefs", android.content.Context.MODE_PRIVATE)
+            .getString("asr_language", "RU")
     }
+    ModelDownloadList(
+        models = ModelRegistry.firstRunModelsFor(language),
+        currentModelId = currentModelId,
+        currentModelBytes = currentModelBytes,
+        showProgress = true,
+    )
+    Spacer(Modifier.height(14.dp))
+    Text("Всего: ${formatBytes(bytesDownloaded)} / ${formatBytes(bytesTotal)} · ${(progress * 100).toInt()} %", color = ElectricViolet.text, fontSize = 14.sp)
+    if (speedBps > 0) Text("Скорость: ${formatBytes(speedBps)}/с", color = ElectricViolet.text, fontSize = 13.sp)
     Spacer(Modifier.height(24.dp))
     Text("Скачивание", color = ElectricViolet.text)
     Spacer(Modifier.height(8.dp))
