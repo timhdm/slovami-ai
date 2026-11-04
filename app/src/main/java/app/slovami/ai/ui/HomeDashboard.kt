@@ -98,7 +98,7 @@ private fun HomeDashboardContent(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.verticalScroll(rememberScrollState()).padding(horizontal = 18.dp),
+        modifier = modifier.verticalScroll(rememberScrollState()).padding(start = 18.dp, end = 18.dp, top = 20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
