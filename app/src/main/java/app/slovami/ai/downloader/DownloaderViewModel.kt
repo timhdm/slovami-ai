@@ -58,6 +58,7 @@ class DownloaderViewModel(app: Application) : AndroidViewModel(app) {
 
     // Прокси на companion-flow'ы из DownloadService
     val currentModelId: StateFlow<String?> = DownloadService.currentModelId
+    val currentModelBytes: StateFlow<Long> = DownloadService.currentModelBytes
     val errorMessage: StateFlow<String?> = DownloadService.errorMessage
     val bytesDownloaded: StateFlow<Long> = DownloadService.bytesDownloaded
     val bytesTotal: StateFlow<Long> = DownloadService.bytesTotal
