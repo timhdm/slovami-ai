@@ -94,6 +94,7 @@ class DownloadService : Service() {
         _bytesTotal.value = 0L
         _speedBps.value = 0L
         _currentModelId.value = null
+        _currentModelBytes.value = 0L
         _serviceState.value = ServiceState.DOWNLOADING
 
         // Поднимаем foreground с initial notification
@@ -107,6 +108,7 @@ class DownloadService : Service() {
                 _bytesTotal.value      = downloader.bytesTotal.value
                 _speedBps.value        = downloader.speedBps.value
                 _currentModelId.value  = downloader.currentModelId.value
+                _currentModelBytes.value = downloader.currentModelBytes.value
 
                 // Обновляем notification
                 val total = downloader.bytesTotal.value
@@ -303,6 +305,9 @@ class DownloadService : Service() {
 
         private val _currentModelId = MutableStateFlow<String?>(null)
         val currentModelId: StateFlow<String?> = _currentModelId.asStateFlow()
+
+        private val _currentModelBytes = MutableStateFlow(0L)
+        val currentModelBytes: StateFlow<Long> = _currentModelBytes.asStateFlow()
 
         private val _errorMessage = MutableStateFlow<String?>(null)
         val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()

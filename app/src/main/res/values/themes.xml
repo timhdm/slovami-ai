@@ -12,7 +12,7 @@
 
         <!-- Иконка на splash экране. Adaptive icon foreground (без фона —
              фон даём через windowSplashScreenBackground) -->
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_electric_foreground</item>
 
         <!-- Длительность визуальной паузы splash до показа MainActivity (мс).
              Реальная длительность ~ это время + время инициализации Activity. -->
