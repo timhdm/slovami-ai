@@ -319,8 +319,8 @@ private fun WaveformDecoration(modifier: Modifier = Modifier) {
             drawLine(
                 color = if (index < bars.size / 2) ElectricViolet.accent
                     else ElectricViolet.neonBlue,
-                start = Offset(x, size.center.y - halfHeight),
-                end = Offset(x, size.center.y + halfHeight),
+                start = Offset(x, size.height / 2f - halfHeight),
+                end = Offset(x, size.height / 2f + halfHeight),
                 strokeWidth = widthStep * 0.46f,
                 cap = StrokeCap.Round,
             )
