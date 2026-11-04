@@ -68,13 +68,13 @@ internal fun HomeDashboard(
     ) {
         Spacer(Modifier.height(12.dp))
         Text(
-            "Ваш голос. Ваши мысли.",
+            "От записи до готового текста.",
             style = MaterialTheme.typography.headlineMedium,
             color = ElectricViolet.text,
             fontWeight = FontWeight.Bold,
         )
         Text(
-            "Записывайте, распознавайте и сохраняйте важное.",
+            "Запишите разговор или загрузите аудиофайл. Slovami AI распознает речь, разделит её по участникам и поможет выделить главное.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
