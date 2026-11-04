@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -77,7 +78,7 @@ fun ElectricVioletPrimaryButton(
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                 shape = shape,
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
-                modifier = Modifier.align(Alignment.Center),
+                modifier = Modifier.fillMaxSize(),
             ) {
                 Text(
                     text = text,
