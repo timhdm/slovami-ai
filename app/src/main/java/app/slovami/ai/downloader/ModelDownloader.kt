@@ -50,6 +50,10 @@ class ModelDownloader(
     private val _bytesDownloaded = MutableStateFlow(0L)
     val bytesDownloaded: StateFlow<Long> = _bytesDownloaded.asStateFlow()
 
+    /** Байты текущей модели, включая возобновлённую часть. */
+    private val _currentModelBytes = MutableStateFlow(0L)
+    val currentModelBytes: StateFlow<Long> = _currentModelBytes.asStateFlow()
+
     /** Целевой объём в текущей сессии. */
     private val _bytesTotal = MutableStateFlow(0L)
     val bytesTotal: StateFlow<Long> = _bytesTotal.asStateFlow()
@@ -98,6 +102,7 @@ class ModelDownloader(
         }
         _bytesTotal.value = pending.sumOf { it.sizeBytes }
         _bytesDownloaded.value = 0L
+        _currentModelBytes.value = 0L
 
         for (model in pending) {
             if (!coroutineContext.isActive) {
@@ -108,6 +113,7 @@ class ModelDownloader(
             val partial = storage.partialFileFor(model)
             val alreadyDownloaded = if (partial.exists()) partial.length() else 0L
 
+            _currentModelBytes.value = alreadyDownloaded.coerceIn(0L, model.sizeBytes)
             _currentModelId.value = model.id
             val ok = downloadOneWithRetry(model, maxAttempts = 3)
             if (!ok) {
@@ -190,6 +196,7 @@ class ModelDownloader(
             }
             // Если сервер не поддерживает Range и вернул 200 — стартуем заново
             val actualStartFrom = if (responseCode == 206) startFrom else 0L
+            _currentModelBytes.value = actualStartFrom
             if (actualStartFrom == 0L && partial.exists()) {
                 partial.delete()
             }
@@ -218,6 +225,7 @@ class ModelDownloader(
                     if (n <= 0) break
                     output.write(buf, 0, n)
                     modelDownloaded += n
+                    _currentModelBytes.value = modelDownloaded.coerceAtMost(model.sizeBytes)
                     totalReadInSession += n
                     _bytesDownloaded.value += n
 
