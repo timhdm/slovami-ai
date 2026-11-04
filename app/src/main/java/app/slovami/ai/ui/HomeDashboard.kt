@@ -49,6 +49,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
 import app.slovami.ai.data.SessionStore
 import app.slovami.ai.ui.theme.ElectricViolet
 import app.slovami.ai.ui.theme.ElectricVioletCard
@@ -74,6 +75,30 @@ internal fun HomeDashboard(
         }
     }
 
+    HomeDashboardContent(
+        recent = recent,
+        onStartRecording = onStartRecording,
+        onImportAudio = onImportAudio,
+        onOpenHistory = onOpenHistory,
+        onOpenSession = onOpenSession,
+        onEditMetadata = onEditMetadata,
+        onEditParticipants = onEditParticipants,
+        modifier = modifier,
+    )
+}
+
+/** Pure UI content: Preview can render this without reading the session store. */
+@Composable
+private fun HomeDashboardContent(
+    recent: List<SessionStore.SessionSummary>,
+    onStartRecording: () -> Unit,
+    onImportAudio: () -> Unit,
+    onOpenHistory: () -> Unit,
+    onOpenSession: (String) -> Unit,
+    onEditMetadata: () -> Unit,
+    onEditParticipants: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Column(
         modifier = modifier.verticalScroll(rememberScrollState()).padding(horizontal = 18.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -261,6 +286,30 @@ private fun HomeActionTile(
                 color = ElectricViolet.text,
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold,
+            )
+        }
+    }
+}
+
+@Preview(name = "Home dashboard", showBackground = true, widthDp = 393, heightDp = 852)
+@Preview(name = "Home dashboard compact", showBackground = true, widthDp = 360, heightDp = 740)
+@Composable
+private fun HomeDashboardPreview() {
+    app.slovami.ai.ui.theme.InterviewTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(ElectricViolet.background),
+        ) {
+            HomeDashboardContent(
+                recent = emptyList(),
+                onStartRecording = {},
+                onImportAudio = {},
+                onOpenHistory = {},
+                onOpenSession = {},
+                onEditMetadata = {},
+                onEditParticipants = {},
+                modifier = Modifier.fillMaxSize(),
             )
         }
     }
