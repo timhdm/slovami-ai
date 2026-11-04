@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -100,6 +101,8 @@ internal fun HomeDashboard(
     onImportAudio: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenSession: (String) -> Unit,
+    isImportingAudio: Boolean,
+    importProgress: Float,
     modifier: Modifier = Modifier,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -192,7 +195,7 @@ internal fun HomeDashboard(
                     ),
                     RoundedCornerShape(28.dp),
                 )
-                .clickable(onClick = onImportAudio)
+                .clickable(enabled = !isImportingAudio, onClick = onImportAudio)
                 .padding(vertical = 17.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
@@ -207,6 +210,23 @@ internal fun HomeDashboard(
             )
         }
 
+        if (isImportingAudio) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    "Импорт аудио: ${(importProgress * 100).toInt()}%",
+                    color = ElectricViolet.text,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                LinearProgressIndicator(
+                    progress = { importProgress.coerceIn(0f, 1f) },
+                    modifier = Modifier.fillMaxWidth(),
+                    color = ElectricViolet.accent,
+                )
+            }
+        }
         Spacer(Modifier.height(14.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
