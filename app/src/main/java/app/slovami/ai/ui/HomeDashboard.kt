@@ -1,8 +1,10 @@
 package app.slovami.ai.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AudioFile
@@ -33,13 +36,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.slovami.ai.data.SessionStore
 import app.slovami.ai.ui.theme.ElectricViolet
 import app.slovami.ai.ui.theme.ElectricVioletCard
-import app.slovami.ai.ui.theme.ElectricVioletPrimaryButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -68,7 +75,13 @@ internal fun HomeDashboard(
     ) {
         Spacer(Modifier.height(12.dp))
         Text(
-            "От записи до готового текста.",
+            buildAnnotatedString {
+                append("От ")
+                withStyle(SpanStyle(color = ElectricViolet.violet)) { append("записи") }
+                append(" до ")
+                withStyle(SpanStyle(color = ElectricViolet.neonBlue)) { append("готового текста") }
+                append(".")
+            },
             style = MaterialTheme.typography.headlineMedium,
             color = ElectricViolet.text,
             fontWeight = FontWeight.Bold,
@@ -84,23 +97,54 @@ internal fun HomeDashboard(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Spacer(Modifier.height(6.dp))
-                Icon(
-                    Icons.Default.Mic,
-                    contentDescription = null,
-                    tint = ElectricViolet.accent,
-                    modifier = Modifier.size(54.dp),
-                )
-                Text(
-                    "Новая запись",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = ElectricViolet.text,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                ElectricVioletPrimaryButton(
-                    text = "Начать запись",
-                    onClick = onStartRecording,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                // The microphone and its label are a single, accessible recording action.
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(role = Role.Button, onClick = onStartRecording)
+                        .padding(vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(168.dp)
+                            .border(
+                                width = 1.dp,
+                                color = ElectricViolet.violet.copy(alpha = 0.25f),
+                                shape = CircleShape,
+                            )
+                            .padding(10.dp)
+                            .border(
+                                width = 1.dp,
+                                color = ElectricViolet.accent.copy(alpha = 0.45f),
+                                shape = CircleShape,
+                            )
+                            .padding(10.dp)
+                            .background(ElectricViolet.primaryGradient, CircleShape)
+                            .padding(6.dp)
+                            .background(
+                                Brush.radialGradient(
+                                    listOf(Color(0xFF39105C), ElectricViolet.card),
+                                ),
+                                CircleShape,
+                            ),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            Icons.Default.Mic,
+                            contentDescription = null,
+                            tint = ElectricViolet.text,
+                            modifier = Modifier.size(64.dp),
+                        )
+                    }
+                    Text(
+                        "Начать запись",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = ElectricViolet.text,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
                 Row(
                     modifier = Modifier.fillMaxWidth()
                         .background(ElectricViolet.card, RoundedCornerShape(14.dp))
