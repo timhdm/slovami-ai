@@ -16,6 +16,7 @@ import app.slovami.ai.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -71,7 +72,9 @@ class DownloadService : Service() {
         super.onDestroy()
         progressUpdateJob?.cancel()
         scope.cancel()
-        _serviceState.value = ServiceState.IDLE
+        if (_serviceState.value == ServiceState.DOWNLOADING) {
+            _serviceState.value = ServiceState.IDLE
+        }
     }
 
     // ────────────────────────────────────────────────────────────────────
@@ -84,6 +87,11 @@ class DownloadService : Service() {
             return
         }
         Log.i(TAG, "Starting download of first-run models")
+        _errorMessage.value = null
+        _bytesDownloaded.value = 0L
+        _bytesTotal.value = 0L
+        _speedBps.value = 0L
+        _currentModelId.value = null
         _serviceState.value = ServiceState.DOWNLOADING
 
         // Поднимаем foreground с initial notification
@@ -134,14 +142,21 @@ class DownloadService : Service() {
                     _errorMessage.value = downloader.errorMessage.value
                     showCompletionNotification(success = false)
                 }
-            } catch (e: Throwable) {
+            } catch (e: CancellationException) {
+                Log.i(TAG, "Download cancelled")
+                _serviceState.value = ServiceState.CANCELLED
+            } catch (e: Exception) {
                 Log.e(TAG, "Download crashed", e)
                 _serviceState.value = ServiceState.ERROR
-                _errorMessage.value = e.message
+                _errorMessage.value = "Не удалось скачать модели. Проверьте подключение и повторите попытку."
                 showCompletionNotification(success = false)
             } finally {
                 progressUpdateJob?.cancel()
-                stopForeground(STOP_FOREGROUND_DETACH) // notification остаётся
+                if (_serviceState.value == ServiceState.CANCELLED) {
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                } else {
+                    stopForeground(STOP_FOREGROUND_DETACH)
+                }
                 stopSelf()
             }
         }
@@ -155,7 +170,8 @@ class DownloadService : Service() {
         // Удаляем notification
         getSystemService(NotificationManager::class.java).cancel(NOTIFICATION_ID)
         stopForeground(STOP_FOREGROUND_REMOVE)
-        stopSelf()
+        // Завершение сервиса выполняется после выхода downloadJob из finally.
+        if (downloadJob?.isActive != true) stopSelf()
     }
 
     // ────────────────────────────────────────────────────────────────────
