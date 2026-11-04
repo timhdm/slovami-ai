@@ -52,7 +52,6 @@ import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.AlertDialog
@@ -282,44 +281,40 @@ fun InterviewScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    if (phase == InterviewViewModel.Phase.IDLE) {
-                        SlovamiBrandLogo()
-                    } else {
-                        Column {
-                            Text(
-                                when (phase) {
-                                    InterviewViewModel.Phase.RECORDING,
-                                    InterviewViewModel.Phase.PAUSED -> "Запись аудио"
-                                    InterviewViewModel.Phase.RECORDED -> "Подготовка распознавания"
-                                    InterviewViewModel.Phase.PROCESSING -> "Распознавание"
-                                    InterviewViewModel.Phase.READY -> "Результат"
-                                    InterviewViewModel.Phase.ERROR -> "Ошибка обработки"
-                                    InterviewViewModel.Phase.IDLE -> "Slovami AI"
-                                },
-                                fontWeight = FontWeight.SemiBold,
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                            Text(
-                                metadata.title.ifBlank { stringResource(R.string.title_empty) },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
+                    Column {
+                        Text(
+                            stringResource(R.string.title_main),
+                            fontWeight = FontWeight.SemiBold,
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Text(
+                            text = if (phase == InterviewViewModel.Phase.IDLE) "Запись и распознавание"
+                                   else if (metadata.title.isBlank()) stringResource(R.string.title_empty)
+                                   else metadata.title,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 },
                 actions = {
-                    if (phase == InterviewViewModel.Phase.IDLE) {
-                        IconButton(onClick = onOpenAbout) {
-                            Text(
-                                "⚙",
-                                fontSize = 24.sp,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
-                    } else {
-                        IconButton(onClick = onOpenHistory) {
-                            Icon(Icons.Default.History, contentDescription = stringResource(R.string.action_history))
-                        }
+                    // Бэйдж языка распознавания — кликабельный, ведёт на About экран для смены.
+                    Box(
+                        modifier = Modifier
+                            .padding(horizontal = 4.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(BrandBlue.copy(alpha = 0.18f))
+                            .clickable { onOpenAbout() }
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                    ) {
+                        Text(
+                            text = if (asrLanguage == AsrLanguage.EN) "EN" else "RU",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = BrandBlue,
+                        )
+                    }
+                    IconButton(onClick = onOpenHistory) {
+                        Icon(Icons.Default.History, contentDescription = stringResource(R.string.action_history))
                     }
                     // Кнопка импорта аудиофайла — видна в фазах IDLE/ERROR.
                     if (phase == InterviewViewModel.Phase.ERROR) {
@@ -358,36 +353,6 @@ fun InterviewScreen(
                             expanded = showOverflowMenu,
                             onDismissRequest = { showOverflowMenu = false },
                         ) {
-                            DropdownMenuItem(
-                                text = { Text("Язык распознавания: " + (if (asrLanguage == AsrLanguage.EN) "EN" else "RU")) },
-                                onClick = {
-                                    showOverflowMenu = false
-                                    onOpenAbout()
-                                },
-                            )
-                            if (phase == InterviewViewModel.Phase.IDLE) {
-                                DropdownMenuItem(
-                                    text = { Text("Название и данные") },
-                                    onClick = {
-                                        showOverflowMenu = false
-                                        showMetadataSheet = true
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Участники") },
-                                    onClick = {
-                                        showOverflowMenu = false
-                                        showParticipantsSheet = true
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_history)) },
-                                    onClick = {
-                                        showOverflowMenu = false
-                                        onOpenHistory()
-                                    },
-                                )
-                            }
                             // Пункт 1: удалить из истории (только если есть сохранённая сессия)
                             if (currentSessionId != null && phase == InterviewViewModel.Phase.READY) {
                                 DropdownMenuItem(
@@ -484,8 +449,8 @@ fun InterviewScreen(
                     onImportAudio = { audioPicker.launch(arrayOf("audio/*")) },
                     onOpenHistory = onOpenHistory,
                     onOpenSession = { id -> vm.loadFromHistory(id) },
-                    isImportingAudio = isImportingAudio,
-                    importProgress = importProgress,
+                    onEditMetadata = { showMetadataSheet = true },
+                    onEditParticipants = { showParticipantsSheet = true },
                     modifier = Modifier.fillMaxSize(),
                 )
             } else {
