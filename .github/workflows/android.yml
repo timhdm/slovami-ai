@@ -72,7 +72,7 @@ jobs:
           DEBUG_KEYSTORE_PATH: ${{ runner.temp }}/slovami-ai-debug.jks
           DEBUG_KEYSTORE_PASSWORD: ${{ secrets.DEBUG_KEYSTORE_PASSWORD }}
           DEBUG_KEY_PASSWORD: ${{ secrets.DEBUG_KEY_PASSWORD }}
-        run: bash ./gradlew --no-daemon testDebugUnitTest
+        run: bash ./gradlew --no-daemon --no-configuration-cache --refresh-dependencies --stacktrace testDebugUnitTest
 
       - name: Upload debug APK
         if: success()
