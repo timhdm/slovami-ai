@@ -24,8 +24,12 @@ function Invoke-Checked([string]$Executable, [string[]]$Arguments) {
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) { throw 'git is not installed.' }
 if (-not (Test-Path $adb)) { throw "ADB not found: $adb" }
 if (-not (Test-Path (Join-Path $root 'gradlew'))) { throw 'Gradle wrapper not found.' }
-$bash = (Get-Command bash.exe -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty Source)
-if (-not $bash) { throw 'bash.exe not found. Install Git for Windows with Git Bash or add bash.exe to PATH.' }
+$bashCandidates = @(
+    (Join-Path $env:ProgramFiles 'Git\bin\bash.exe'),
+    (Join-Path $env:ProgramFiles 'Git\usr\bin\bash.exe')
+)
+$bash = $bashCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+if (-not $bash) { throw 'Git Bash not found under Program Files\Git. Install Git for Windows.' }
 if (-not (Test-Path $sdk)) { throw "Android SDK not found: $sdk" }
 
 Push-Location $root
@@ -69,7 +73,6 @@ try {
     $env:ANDROID_HOME = $sdk
     $env:ANDROID_SDK_ROOT = $sdk
     $tasks = if ($RunTests) { @('assembleDebug','testDebugUnitTest') } else { @('assembleDebug') }
-    $gradleScript = (Join-Path $root 'gradlew').Replace('\\','/')
     # Git Bash converts Windows paths; use a relative path from repository root.
     Invoke-Checked $bash (@('./gradlew') + $tasks)
     $apk = Join-Path $root 'app\build\outputs\apk\debug\app-debug.apk'
