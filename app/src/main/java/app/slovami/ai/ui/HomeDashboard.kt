@@ -1,7 +1,7 @@
 package app.slovami.ai.ui
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,12 +10,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.matchParentSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AudioFile
@@ -28,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -38,6 +40,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -74,91 +78,79 @@ internal fun HomeDashboard(
         modifier = modifier.verticalScroll(rememberScrollState()).padding(horizontal = 18.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Spacer(Modifier.height(4.dp))
-        Text(
-            buildAnnotatedString {
-                append("От ")
-                withStyle(SpanStyle(color = ElectricViolet.violet)) { append("записи") }
-                append(" до ")
-                withStyle(SpanStyle(color = ElectricViolet.neonBlue)) { append("готового текста") }
-                append(".")
-            },
-            style = MaterialTheme.typography.headlineMedium.copy(fontSize = 21.sp, lineHeight = 26.sp),
-            color = ElectricViolet.text,
-            fontWeight = FontWeight.Bold,
-        )
-        Text(
-            "Запишите разговор или загрузите аудиофайл. Slovami AI распознает речь, разделит её по участникам и поможет выделить главное.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        ElectricVioletCard(modifier = Modifier.fillMaxWidth()) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                Spacer(Modifier.height(6.dp))
-                // The microphone and its label are a single, accessible recording action.
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(role = Role.Button, onClick = onStartRecording)
-                        .padding(vertical = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(168.dp)
-                            .border(
-                                width = 1.dp,
-                                color = ElectricViolet.violet.copy(alpha = 0.25f),
-                                shape = CircleShape,
-                            )
-                            .padding(10.dp)
-                            .border(
-                                width = 1.dp,
-                                color = ElectricViolet.accent.copy(alpha = 0.45f),
-                                shape = CircleShape,
-                            )
-                            .padding(10.dp)
-                            .background(ElectricViolet.primaryGradient, CircleShape)
-                            .padding(6.dp)
-                            .background(
-                                Brush.radialGradient(
-                                    listOf(Color(0xFF39105C), ElectricViolet.card),
-                                ),
-                                CircleShape,
-                            ),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            Icons.Default.Mic,
-                            contentDescription = null,
-                            tint = ElectricViolet.text,
-                            modifier = Modifier.size(64.dp),
-                        )
+        Box(modifier = Modifier.fillMaxWidth()) {
+            // Subtle violet-blue ribbons behind the right side of the introduction.
+            Canvas(modifier = Modifier.matchParentSize()) {
+                val w = size.width
+                val h = size.height
+                val ribbon = Brush.horizontalGradient(
+                    listOf(ElectricViolet.violet, ElectricViolet.accent, ElectricViolet.neonBlue),
+                    startX = w * 0.40f,
+                    endX = w,
+                )
+                for (i in 0..3) {
+                    val y = h * (0.42f + i * 0.075f)
+                    val path = Path().apply {
+                        moveTo(w * 0.40f, y)
+                        cubicTo(w * 0.59f, y - h * 0.22f, w * 0.72f, y + h * 0.35f, w, y - h * 0.16f)
                     }
-                    Text(
-                        "Начать запись",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = ElectricViolet.text,
-                        fontWeight = FontWeight.SemiBold,
+                    drawPath(
+                        path = path,
+                        brush = ribbon,
+                        alpha = 0.10f + i * 0.035f,
+                        style = Stroke(width = 2.dp.toPx() + i * 1.5.dp.toPx()),
                     )
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth()
-                        .background(ElectricViolet.card, RoundedCornerShape(14.dp))
-                        .clickable(onClick = onImportAudio)
-                        .padding(vertical = 15.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(Icons.Default.AudioFile, contentDescription = null, tint = ElectricViolet.accent)
-                    Spacer(Modifier.width(10.dp))
-                    Text("Импортировать аудио", color = ElectricViolet.text, fontWeight = FontWeight.Medium)
-                }
             }
+            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Text(
+                    buildAnnotatedString {
+                        append("От ")
+                        withStyle(
+                            SpanStyle(brush = Brush.horizontalGradient(
+                                listOf(ElectricViolet.accent, ElectricViolet.violet),
+                            )),
+                        ) { append("записи") }
+                        append(" до\n")
+                        withStyle(
+                            SpanStyle(brush = Brush.horizontalGradient(
+                                listOf(ElectricViolet.accent, ElectricViolet.neonBlue),
+                            )),
+                        ) { append("готового текста") }
+                        append(".")
+                    },
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontSize = 23.sp,
+                        lineHeight = 27.sp,
+                    ),
+                    color = ElectricViolet.text,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    "Запишите разговор или загрузите аудиофайл. Slovami AI распознает речь, разделит её по участникам и поможет выделить главное.",
+                    style = MaterialTheme.typography.bodySmall.copy(lineHeight = 18.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            HomeActionTile(
+                label = "Запись",
+                icon = Icons.Default.Mic,
+                primary = true,
+                onClick = onStartRecording,
+                modifier = Modifier.weight(1f),
+            )
+            HomeActionTile(
+                label = "Импорт",
+                icon = Icons.Default.AudioFile,
+                primary = false,
+                onClick = onImportAudio,
+                modifier = Modifier.weight(1f),
+            )
         }
 
         Row(
@@ -228,5 +220,48 @@ internal fun HomeDashboard(
             }
         }
         Spacer(Modifier.height(20.dp))
+    }
+}
+
+@Composable
+private fun HomeActionTile(
+    label: String,
+    icon: ImageVector,
+    primary: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val shape = RoundedCornerShape(17.dp)
+    Box(
+        modifier = modifier
+            .height(94.dp)
+            .background(
+                if (primary) Brush.linearGradient(
+                    listOf(Color(0xFF431568), Color(0xFF25143F)),
+                ) else Brush.linearGradient(
+                    listOf(ElectricViolet.card, Color(0xFF12101F)),
+                ),
+                shape,
+            )
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(7.dp),
+        ) {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = if (primary) ElectricViolet.accent else ElectricViolet.text,
+                modifier = Modifier.size(27.dp),
+            )
+            Text(
+                label,
+                color = ElectricViolet.text,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
     }
 }
