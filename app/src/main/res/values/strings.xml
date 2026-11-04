@@ -223,7 +223,7 @@
     <string name="downloader_welcome_message">Для работы оффлайн нужно разово скачать модели распознавания речи. После этого приложение работает без интернета.</string>
     <string name="downloader_size_title">Размер загрузки</string>
     <string name="downloader_size_value">%1$s — скачивается один раз</string>
-    <string name="downloader_start_action">Скачать модели</string>
+    <string name="downloader_start_action">Скачать</string>
     <string name="downloader_downloading_title">Скачивание…</string>
     <string name="downloader_speed">%1$s/с</string>
     <string name="downloader_label_asr">Модель распознавания речи</string>
