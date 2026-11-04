@@ -310,9 +310,10 @@ fun InterviewScreen(
                 actions = {
                     if (phase == InterviewViewModel.Phase.IDLE) {
                         IconButton(onClick = onOpenAbout) {
-                            Icon(
-                                androidx.compose.material.icons.filled.Settings,
-                                contentDescription = "Настройки",
+                            Text(
+                                "⚙",
+                                fontSize = 24.sp,
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                         }
                     } else {
