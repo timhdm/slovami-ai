@@ -50,6 +50,7 @@ class DownloadService : Service() {
     private lateinit var storage: ModelStorage
     private lateinit var downloader: ModelDownloader
     private var progressUpdateJob: Job? = null
+    private var retryRequested = false
 
     override fun onCreate() {
         super.onCreate()
@@ -83,7 +84,8 @@ class DownloadService : Service() {
 
     private fun startDownload() {
         if (downloadJob?.isActive == true) {
-            Log.i(TAG, "Download already in progress, ignoring start request")
+            if (_serviceState.value == ServiceState.ERROR) retryRequested = true
+            Log.i(TAG, "Download already in progress; retry queued=$retryRequested")
             return
         }
         Log.i(TAG, "Starting download of first-run models")
@@ -139,7 +141,7 @@ class DownloadService : Service() {
                 } else {
                     Log.w(TAG, "Download failed: ${downloader.errorMessage.value}")
                     _serviceState.value = ServiceState.ERROR
-                    _errorMessage.value = downloader.errorMessage.value
+                    _errorMessage.value = "Не удалось скачать модели. Проверьте подключение и повторите попытку."
                     showCompletionNotification(success = false)
                 }
             } catch (e: CancellationException) {
@@ -152,12 +154,16 @@ class DownloadService : Service() {
                 showCompletionNotification(success = false)
             } finally {
                 progressUpdateJob?.cancel()
-                if (_serviceState.value == ServiceState.CANCELLED) {
+                if (retryRequested && _serviceState.value != ServiceState.CANCELLED) {
+                    retryRequested = false
+                    downloadJob = null
+                    android.os.Handler(android.os.Looper.getMainLooper()).post { startDownload() }
+                } else if (_serviceState.value == ServiceState.CANCELLED) {
                     stopForeground(STOP_FOREGROUND_REMOVE)
                 } else {
                     stopForeground(STOP_FOREGROUND_DETACH)
                 }
-                stopSelf()
+                if (downloadJob != null) stopSelf()
             }
         }
     }
