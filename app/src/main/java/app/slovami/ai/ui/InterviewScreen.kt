@@ -358,7 +358,7 @@ fun InterviewScreen(
                             onDismissRequest = { showOverflowMenu = false },
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Язык распознавания: " + if (asrLanguage == AsrLanguage.EN) "EN" else "RU") },
+                                text = { Text("Язык распознавания: " + (if (asrLanguage == AsrLanguage.EN) "EN" else "RU")) },
                                 onClick = {
                                     showOverflowMenu = false
                                     onOpenAbout()
@@ -483,6 +483,8 @@ fun InterviewScreen(
                     onImportAudio = { audioPicker.launch(arrayOf("audio/*")) },
                     onOpenHistory = onOpenHistory,
                     onOpenSession = { id -> vm.loadFromHistory(id) },
+                    isImportingAudio = isImportingAudio,
+                    importProgress = importProgress,
                     modifier = Modifier.fillMaxSize(),
                 )
             } else {
