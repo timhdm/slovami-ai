@@ -17,6 +17,7 @@
 - Скрипт: `scripts/install-latest-debug.ps1`
 - APK: `app/build/outputs/apk/debug/app-debug.apk`
 - Java: JDK 17, доступный Gradle
+- Git for Windows с Git Bash (репозиторий содержит `gradlew`, но не `gradlew.bat`)
 - `sherpa-onnx.aar`: скачивается при отсутствии и проверяется SHA-256.
 
 ## Ключ подписи — обязательно
