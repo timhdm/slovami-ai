@@ -216,6 +216,17 @@ private fun HomeDashboardContent(
     }
 }
 
+private fun wordForm(count: Int): String {
+    val remainder100 = count % 100
+    val remainder10 = count % 10
+    return when {
+        remainder100 in 11..14 -> "слов"
+        remainder10 == 1 -> "слово"
+        remainder10 in 2..4 -> "слова"
+        else -> "слов"
+    }
+}
+
 @Composable
 private fun RecentRecordingCard(
     session: SessionStore.SessionSummary,
@@ -263,7 +274,7 @@ private fun RecentRecordingCard(
                 .padding(horizontal = 8.dp, vertical = 5.dp),
         ) {
             Text(
-                "${session.totalWords} слов",
+                "${session.totalWords} ${wordForm(session.totalWords)}",
                 color = ElectricViolet.text,
                 maxLines = 1,
                 style = MaterialTheme.typography.labelSmall,
@@ -340,7 +351,29 @@ private fun HomeDashboardPreview() {
                 .background(ElectricViolet.background),
         ) {
             HomeDashboardContent(
-                recent = emptyList(),
+                recent = listOf(
+                    SessionStore.SessionSummary(
+                        id = "preview-1", createdAt = System.currentTimeMillis(),
+                        title = "Синхронизация продукта", location = "", auditorName = "",
+                        durationMs = 28 * 60_000L + 16_000L, numSpeakers = 2,
+                        numSegments = 7, totalWords = 12,
+                        audioFileName = null, audioExists = false,
+                    ),
+                    SessionStore.SessionSummary(
+                        id = "preview-2", createdAt = System.currentTimeMillis() - 86_400_000L,
+                        title = "Идеи по функционалу", location = "", auditorName = "",
+                        durationMs = 12 * 60_000L + 38_000L, numSpeakers = 1,
+                        numSegments = 12, totalWords = 171,
+                        audioFileName = null, audioExists = false,
+                    ),
+                    SessionStore.SessionSummary(
+                        id = "preview-3", createdAt = System.currentTimeMillis() - 172_800_000L,
+                        title = "План на неделю", location = "", auditorName = "",
+                        durationMs = 19 * 60_000L + 32_000L, numSpeakers = 3,
+                        numSegments = 24, totalWords = 1024,
+                        audioFileName = null, audioExists = false,
+                    ),
+                ),
                 onStartRecording = {},
                 onImportAudio = {},
                 onOpenHistory = {},
