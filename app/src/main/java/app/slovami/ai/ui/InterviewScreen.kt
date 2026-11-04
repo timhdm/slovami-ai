@@ -287,7 +287,8 @@ fun InterviewScreen(
                             style = MaterialTheme.typography.titleMedium,
                         )
                         Text(
-                            text = if (metadata.title.isBlank()) stringResource(R.string.title_empty)
+                            text = if (phase == InterviewViewModel.Phase.IDLE) "Запись и распознавание"
+                                   else if (metadata.title.isBlank()) stringResource(R.string.title_empty)
                                    else metadata.title,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -315,8 +316,7 @@ fun InterviewScreen(
                         Icon(Icons.Default.History, contentDescription = stringResource(R.string.action_history))
                     }
                     // Кнопка импорта аудиофайла — видна в фазах IDLE/ERROR.
-                    if (phase == InterviewViewModel.Phase.IDLE ||
-                        phase == InterviewViewModel.Phase.ERROR) {
+                    if (phase == InterviewViewModel.Phase.ERROR) {
                         IconButton(
                             onClick = {
                                 // SAF пикер для всех аудио MIME-типов
@@ -330,10 +330,10 @@ fun InterviewScreen(
                             )
                         }
                     }
-                    IconButton(onClick = { showMetadataSheet = true }) {
+                    if (phase != InterviewViewModel.Phase.IDLE) IconButton(onClick = { showMetadataSheet = true }) {
                         Icon(Icons.Default.Description, contentDescription = stringResource(R.string.action_metadata))
                     }
-                    IconButton(onClick = { showParticipantsSheet = true }) {
+                    if (phase != InterviewViewModel.Phase.IDLE) IconButton(onClick = { showParticipantsSheet = true }) {
                         Icon(Icons.Default.Group, contentDescription = stringResource(R.string.action_participants))
                     }
                     if (phase == InterviewViewModel.Phase.READY ||
@@ -394,7 +394,9 @@ fun InterviewScreen(
         },
         snackbarHost = { SnackbarHost(snack) },
         bottomBar = {
-            if (phase == InterviewViewModel.Phase.READY) {
+            if (phase == InterviewViewModel.Phase.IDLE) {
+                // Primary actions are displayed on the home dashboard.
+            } else if (phase == InterviewViewModel.Phase.READY) {
                 val shareTitle = stringResource(R.string.action_share_docx)
                 ExportBottomBar(
                     onExport = { vm.exportDocx() },
@@ -435,8 +437,22 @@ fun InterviewScreen(
         Column(modifier = Modifier
             .fillMaxSize()
             .padding(padding)
-            .then(if (transcript == null) Modifier.verticalScroll(rememberScrollState()) else Modifier),
+            .then(if (transcript == null && phase != InterviewViewModel.Phase.IDLE) Modifier.verticalScroll(rememberScrollState()) else Modifier),
         ) {
+            if (phase == InterviewViewModel.Phase.IDLE) {
+                HomeDashboard(
+                    onStartRecording = {
+                        if (vm.recorder.hasPermission()) vm.startRecording()
+                        else recordPermission.launch(Manifest.permission.RECORD_AUDIO)
+                    },
+                    onImportAudio = { audioPicker.launch(arrayOf("audio/*")) },
+                    onOpenHistory = onOpenHistory,
+                    onOpenSession = { id -> vm.loadFromHistory(id) },
+                    onEditMetadata = { showMetadataSheet = true },
+                    onEditParticipants = { showParticipantsSheet = true },
+                    modifier = Modifier.fillMaxSize(),
+                )
+            } else {
             // ---- Карточка статуса ----
             StatusCard(
                 phase = phase,
@@ -560,6 +576,7 @@ fun InterviewScreen(
                     modifier = Modifier.fillMaxSize(),
                 )
             }
+            } // end active session content
         }
     }
 
