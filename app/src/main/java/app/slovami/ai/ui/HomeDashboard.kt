@@ -39,9 +39,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.slovami.ai.data.SessionStore
@@ -74,23 +71,6 @@ internal fun HomeDashboard(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Spacer(Modifier.height(12.dp))
-        Text(
-            buildAnnotatedString {
-                append("От ")
-                withStyle(SpanStyle(color = ElectricViolet.violet)) { append("записи") }
-                append(" до ")
-                withStyle(SpanStyle(color = ElectricViolet.neonBlue)) { append("готового текста") }
-                append(".")
-            },
-            style = MaterialTheme.typography.headlineMedium,
-            color = ElectricViolet.text,
-            fontWeight = FontWeight.Bold,
-        )
-        Text(
-            "Запишите разговор или загрузите аудиофайл. Slovami AI распознает речь, разделит её по участникам и поможет выделить главное.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
         ElectricVioletCard(modifier = Modifier.fillMaxWidth()) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -160,6 +140,11 @@ internal fun HomeDashboard(
             }
         }
 
+        Text(
+            "Запишите разговор или загрузите аудиофайл. Slovami AI распознает речь, разделит её по участникам и поможет выделить главное.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
