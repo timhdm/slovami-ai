@@ -21,6 +21,13 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import app.slovami.ai.ui.theme.ElectricViolet
+import app.slovami.ai.ui.theme.ElectricVioletCard
+import app.slovami.ai.ui.theme.ElectricVioletPrimaryButton
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -123,17 +130,20 @@ fun DownloaderScreen(
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background,
+        color = ElectricViolet.background,
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // Основной контент (по центру)
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(24.dp),
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp, vertical = 76.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
+                BrandHeader()
+                Spacer(Modifier.height(42.dp))
                 when (phase) {
                     DownloaderViewModel.Phase.CHECKING -> CheckingState()
                     DownloaderViewModel.Phase.NEEDS_DOWNLOAD -> {
@@ -214,124 +224,41 @@ fun DownloaderScreen(
     }
 }
 
+
+@Composable
+private fun BrandHeader() {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(Icons.Default.GraphicEq, contentDescription = null, tint = ElectricViolet.accent, modifier = Modifier.size(34.dp))
+        Spacer(Modifier.width(10.dp))
+        Text("Slovami ", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Bold)
+        Text("AI", color = ElectricViolet.accent, fontSize = 23.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
 @Composable
 private fun CheckingState() {
-    val cs = MaterialTheme.colorScheme
-    CircularProgressIndicator(
-        color = BrandBlue,
-        strokeWidth = 3.dp,
-        modifier = Modifier.size(48.dp),
-    )
-    Spacer(Modifier.height(16.dp))
-    Text(
-        text = stringResource(R.string.downloader_checking),
-        style = MaterialTheme.typography.bodyMedium,
-        color = cs.onSurfaceVariant,
-    )
+    CircularProgressIndicator(color = ElectricViolet.accent)
+    Spacer(Modifier.height(18.dp))
+    Text(stringResource(R.string.downloader_checking), color = ElectricViolet.text)
 }
 
 @Composable
 private fun WelcomeState(totalBytes: Long, onStart: () -> Unit) {
-    val cs = MaterialTheme.colorScheme
-
-    // Иллюстрация (используем иллюстрацию для onboarding offline — она про "ваше устройство")
-    Image(
-        painter = painterResource(R.drawable.illustration_onboarding_offline),
-        contentDescription = null,
-        modifier = Modifier
-            .size(220.dp)
-            .padding(bottom = 16.dp),
-        contentScale = ContentScale.Fit,
-    )
-
-    Text(
-        text = stringResource(R.string.downloader_welcome_title),
-        style = MaterialTheme.typography.headlineSmall,
-        fontWeight = FontWeight.Bold,
-        color = cs.onSurface,
-        textAlign = TextAlign.Center,
-    )
-    Spacer(Modifier.height(12.dp))
-    Text(
-        text = stringResource(R.string.downloader_welcome_message),
-        style = MaterialTheme.typography.bodyMedium,
-        color = cs.onSurfaceVariant,
-        textAlign = TextAlign.Center,
-        modifier = Modifier.padding(horizontal = 16.dp),
-    )
-
-    Spacer(Modifier.height(20.dp))
-
-    // Карточка с информацией о размере
-    Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = cs.surface,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                Icons.Default.CloudDownload,
-                contentDescription = null,
-                tint = BrandBlue,
-                modifier = Modifier.size(28.dp),
-            )
-            Spacer(Modifier.width(14.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(R.string.downloader_size_title),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = cs.onSurface,
-                )
-                Text(
-                    text = stringResource(
-                        R.string.downloader_size_value,
-                        formatBytes(totalBytes),
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = cs.onSurfaceVariant,
-                )
-            }
+    Icon(Icons.Default.CloudDownload, contentDescription = null, tint = ElectricViolet.accent, modifier = Modifier.size(130.dp))
+    Spacer(Modifier.height(28.dp))
+    Text(stringResource(R.string.downloader_welcome_title), color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+    Spacer(Modifier.height(16.dp))
+    Text(stringResource(R.string.downloader_welcome_message), color = ElectricViolet.text, fontSize = 16.sp, lineHeight = 24.sp, textAlign = TextAlign.Center)
+    Spacer(Modifier.height(26.dp))
+    ElectricVioletCard(modifier = Modifier.fillMaxWidth()) {
+        Column {
+            Text(stringResource(R.string.downloader_size_title), color = Color.White, fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.height(6.dp))
+            Text(stringResource(R.string.downloader_size_value, formatBytes(totalBytes)), color = ElectricViolet.text)
         }
     }
-
-    Spacer(Modifier.height(24.dp))
-
-    Button(
-        onClick = onStart,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .padding(horizontal = 8.dp),
-        shape = RoundedCornerShape(14.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = BrandBlue,
-            contentColor = Color.White,
-        ),
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 4.dp,
-            pressedElevation = 8.dp,
-        ),
-    ) {
-        Icon(
-            Icons.Default.CloudDownload,
-            contentDescription = null,
-            modifier = Modifier.size(22.dp),
-        )
-        Spacer(Modifier.width(10.dp))
-        Text(
-            text = stringResource(R.string.downloader_start_action),
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp,
-        )
-    }
+    Spacer(Modifier.height(26.dp))
+    ElectricVioletPrimaryButton(text = stringResource(R.string.downloader_start_action), onClick = onStart, modifier = Modifier.fillMaxWidth())
 }
 
 @Composable
@@ -343,195 +270,68 @@ private fun DownloadingState(
     currentModelId: String?,
     onCancel: () -> Unit,
 ) {
-    val cs = MaterialTheme.colorScheme
-
-    // Иллюстрация: transcribing — самая динамичная, подходит для "идёт процесс"
-    Image(
-        painter = painterResource(R.drawable.illustration_empty_transcribing),
-        contentDescription = null,
-        modifier = Modifier
-            .size(180.dp)
-            .padding(bottom = 16.dp),
-        contentScale = ContentScale.Fit,
-    )
-
-    Text(
-        text = stringResource(R.string.downloader_downloading_title),
-        style = MaterialTheme.typography.headlineSmall,
-        fontWeight = FontWeight.SemiBold,
-        color = cs.onSurface,
-        textAlign = TextAlign.Center,
-    )
-    Spacer(Modifier.height(8.dp))
-
-    // Прогресс-бар
-    LinearProgressIndicator(
-        progress = { progress },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp)
-            .height(8.dp)
-            .clip(RoundedCornerShape(4.dp)),
-        color = BrandBlue,
-        trackColor = cs.surfaceContainerHighest,
-    )
-
+    Icon(Icons.Default.GraphicEq, contentDescription = null, tint = ElectricViolet.accent, modifier = Modifier.size(125.dp))
+    Spacer(Modifier.height(30.dp))
+    Text(stringResource(R.string.downloader_downloading_title), color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
     Spacer(Modifier.height(12.dp))
-
-    // Цифры под прогрессом
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(
-            text = "${formatBytes(bytesDownloaded)} / ${formatBytes(bytesTotal)}",
-            style = MaterialTheme.typography.labelMedium,
-            fontFamily = FontFamily.Monospace,
-            color = cs.onSurfaceVariant,
-        )
-        Text(
-            text = "${(progress * 100).toInt()}%",
-            style = MaterialTheme.typography.labelMedium,
-            fontFamily = FontFamily.Monospace,
-            color = BrandBlue,
-            fontWeight = FontWeight.SemiBold,
-        )
-    }
-
-    Spacer(Modifier.height(16.dp))
-
-    // Лейблы моделей в progress (RU + EN)
-    val modelLabel = currentModelId?.let { id ->
-        when (id) {
-            "asr_gigaam_v3" -> stringResource(R.string.downloader_label_asr)
-            "embedding_camplus" -> stringResource(R.string.downloader_label_camplus)
-            "embedding_v1" -> stringResource(R.string.downloader_label_v1)
-            "embedding_v2" -> stringResource(R.string.downloader_label_v2)
-            "asr_en_encoder" -> "Whisper encoder"
-            "asr_en_decoder" -> "Whisper decoder"
-            "asr_en_tokens" -> "Whisper tokens"
-            else -> id
+    Text("Загружаются модели для офлайн-работы", color = ElectricViolet.text, textAlign = TextAlign.Center)
+    Spacer(Modifier.height(26.dp))
+    ElectricVioletCard(modifier = Modifier.fillMaxWidth()) {
+        Column {
+            val modelLabel = when (currentModelId) {
+                "asr_gigaam_v3" -> stringResource(R.string.downloader_label_asr)
+                "embedding_camplus" -> stringResource(R.string.downloader_label_camplus)
+                "embedding_v1" -> stringResource(R.string.downloader_label_v1)
+                "embedding_v2" -> stringResource(R.string.downloader_label_v2)
+                "asr_en_encoder" -> "Whisper encoder"
+                "asr_en_decoder" -> "Whisper decoder"
+                "asr_en_tokens" -> "Whisper tokens"
+                null -> stringResource(R.string.downloader_downloading_title)
+                else -> currentModelId
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(modelLabel, color = Color.White, modifier = Modifier.weight(1f))
+                Text("${(progress * 100).toInt()} %", color = ElectricViolet.accent, fontWeight = FontWeight.Bold)
+            }
+            Spacer(Modifier.height(16.dp))
+            LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(8.dp)), color = ElectricViolet.violet, trackColor = ElectricViolet.cardBorder)
+            Spacer(Modifier.height(12.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("${formatBytes(bytesDownloaded)} / ${formatBytes(bytesTotal)}", color = ElectricViolet.text)
+                if (speedBps > 0) Text("${formatBytes(speedBps)}/с", color = ElectricViolet.accent)
+            }
         }
     }
-    if (modelLabel != null) {
-        Text(
-            text = modelLabel,
-            style = MaterialTheme.typography.bodySmall,
-            color = cs.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
-    }
-    if (speedBps > 0) {
-        Text(
-            text = stringResource(
-                R.string.downloader_speed,
-                formatBytes(speedBps),
-            ),
-            style = MaterialTheme.typography.bodySmall,
-            color = BrandPurple,
-            fontFamily = FontFamily.Monospace,
-            textAlign = TextAlign.Center,
-        )
-    }
-
+    Spacer(Modifier.height(24.dp))
+    Text("Скачивание", color = ElectricViolet.text)
+    Spacer(Modifier.height(8.dp))
+    Text("После загрузки файлы будут проверены и подготовлены", color = ElectricViolet.text, fontSize = 13.sp, textAlign = TextAlign.Center)
     Spacer(Modifier.height(28.dp))
-
-    OutlinedButton(
-        onClick = onCancel,
-        modifier = Modifier
-            .fillMaxWidth(0.6f)
-            .height(48.dp),
-        shape = RoundedCornerShape(12.dp),
-    ) {
-        Text(
-            text = stringResource(R.string.downloader_cancel),
-            fontWeight = FontWeight.SemiBold,
-        )
+    OutlinedButton(onClick = onCancel, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(22.dp), border = androidx.compose.foundation.BorderStroke(1.dp, ElectricViolet.violet)) {
+        Text(stringResource(R.string.downloader_cancel), color = ElectricViolet.text)
     }
 }
 
 @Composable
 private fun SuccessState() {
-    val cs = MaterialTheme.colorScheme
-    Icon(
-        Icons.Default.CheckCircle,
-        contentDescription = null,
-        tint = BrandBlue,
-        modifier = Modifier.size(72.dp),
-    )
+    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = ElectricViolet.accent, modifier = Modifier.size(80.dp))
     Spacer(Modifier.height(16.dp))
-    Text(
-        text = stringResource(R.string.downloader_success_title),
-        style = MaterialTheme.typography.headlineSmall,
-        fontWeight = FontWeight.Bold,
-        color = cs.onSurface,
-    )
-    Spacer(Modifier.height(8.dp))
-    Text(
-        text = stringResource(R.string.downloader_success_message),
-        style = MaterialTheme.typography.bodyMedium,
-        color = cs.onSurfaceVariant,
-        textAlign = TextAlign.Center,
-    )
+    Text(stringResource(R.string.downloader_success_title), color = Color.White, fontWeight = FontWeight.Bold)
 }
 
 @Composable
 private fun ErrorState(message: String?, onRetry: () -> Unit) {
-    val cs = MaterialTheme.colorScheme
-
-    // Иллюстрация: no internet или no results
-    Image(
-        painter = painterResource(R.drawable.illustration_empty_no_internet),
-        contentDescription = null,
-        modifier = Modifier
-            .size(200.dp)
-            .padding(bottom = 16.dp),
-        contentScale = ContentScale.Fit,
-    )
-
-    Icon(
-        Icons.Default.ErrorOutline,
-        contentDescription = null,
-        tint = RecordingRed,
-        modifier = Modifier.size(36.dp),
-    )
-    Spacer(Modifier.height(12.dp))
-    Text(
-        text = stringResource(R.string.downloader_error_title),
-        style = MaterialTheme.typography.headlineSmall,
-        fontWeight = FontWeight.Bold,
-        color = cs.onSurface,
-        textAlign = TextAlign.Center,
-    )
-    Spacer(Modifier.height(8.dp))
-    Text(
-        text = message ?: stringResource(R.string.downloader_error_generic),
-        style = MaterialTheme.typography.bodyMedium,
-        color = cs.onSurfaceVariant,
-        textAlign = TextAlign.Center,
-        modifier = Modifier.padding(horizontal = 16.dp),
-    )
-
+    Icon(Icons.Default.CloudOff, contentDescription = null, tint = ElectricViolet.accent, modifier = Modifier.size(130.dp))
+    Spacer(Modifier.height(30.dp))
+    Text(stringResource(R.string.downloader_error_title), color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+    Spacer(Modifier.height(18.dp))
+    Text(message ?: stringResource(R.string.downloader_error_generic), color = ElectricViolet.text, textAlign = TextAlign.Center, lineHeight = 24.sp)
     Spacer(Modifier.height(28.dp))
-
-    Button(
-        onClick = onRetry,
-        modifier = Modifier
-            .fillMaxWidth(0.7f)
-            .height(52.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = BrandBlue,
-            contentColor = Color.White,
-        ),
-    ) {
-        Text(
-            text = stringResource(R.string.downloader_retry),
-            fontWeight = FontWeight.Bold,
-        )
+    ElectricVioletCard(modifier = Modifier.fillMaxWidth()) {
+        Text("Проверьте подключение к интернету и повторите попытку", color = ElectricViolet.text)
     }
+    Spacer(Modifier.height(28.dp))
+    ElectricVioletPrimaryButton(text = stringResource(R.string.downloader_retry), onClick = onRetry, modifier = Modifier.fillMaxWidth())
 }
 
 /**
