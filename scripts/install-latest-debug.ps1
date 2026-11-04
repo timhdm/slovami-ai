@@ -67,7 +67,7 @@ try {
     $env:ANDROID_HOME = $sdk
     $env:ANDROID_SDK_ROOT = $sdk
     $tasks = if ($RunTests) { @('assembleDebug','testDebugUnitTest') } else { @('assembleDebug') }
-    Invoke-Checked (Join-Path $root 'gradlew.bat') (@('--offline') + $tasks)
+    Invoke-Checked (Join-Path $root 'gradlew.bat') $tasks
     $apk = Join-Path $root 'app\build\outputs\apk\debug\app-debug.apk'
     if (-not (Test-Path $apk)) { throw "APK not found: $apk" }
     Write-Host "Local APK ready: $apk"
