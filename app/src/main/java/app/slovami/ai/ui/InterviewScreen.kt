@@ -115,6 +115,7 @@ import app.slovami.ai.asr.TranscriptSegment
 import app.slovami.ai.audio.AudioRecorder
 import app.slovami.ai.ui.theme.BrandBlue
 import app.slovami.ai.ui.theme.BrandCyan
+import app.slovami.ai.ui.theme.ElectricViolet
 import app.slovami.ai.ui.theme.BrandPurple
 import app.slovami.ai.ui.theme.RecordingRed
 import java.util.Locale
@@ -688,10 +689,11 @@ private fun StatusCard(
 
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = cs.surface),
+        colors = CardDefaults.cardColors(containerColor = ElectricViolet.card),
+        shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
@@ -711,9 +713,9 @@ private fun StatusCard(
                     phase == InterviewViewModel.Phase.PAUSED) {
                     Text(
                         text = formatDuration(durationMs),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.headlineMedium,
                         fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.Bold,
                     )
                 }
             }
@@ -817,7 +819,7 @@ private fun RecordControls(
                         .height(64.dp),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = BrandBlue,
+                        containerColor = ElectricViolet.violet,
                         contentColor = Color.White,
                     ),
                     elevation = ButtonDefaults.buttonElevation(
