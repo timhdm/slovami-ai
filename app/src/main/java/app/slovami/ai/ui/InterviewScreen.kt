@@ -281,38 +281,22 @@ fun InterviewScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            stringResource(R.string.title_main),
-                            fontWeight = FontWeight.SemiBold,
-                            style = MaterialTheme.typography.titleMedium,
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(R.drawable.ic_launcher_electric_foreground),
+                            contentDescription = null,
+                            modifier = Modifier.size(38.dp),
                         )
+                        Spacer(Modifier.width(4.dp))
                         Text(
-                            text = if (phase == InterviewViewModel.Phase.IDLE) "Запись и распознавание"
-                                   else if (metadata.title.isBlank()) stringResource(R.string.title_empty)
-                                   else metadata.title,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            "Slovami AI",
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleLarge,
+                            color = ElectricViolet.text,
                         )
                     }
                 },
                 actions = {
-                    // Бэйдж языка распознавания — кликабельный, ведёт на About экран для смены.
-                    Box(
-                        modifier = Modifier
-                            .padding(horizontal = 4.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(BrandBlue.copy(alpha = 0.18f))
-                            .clickable { onOpenAbout() }
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                    ) {
-                        Text(
-                            text = if (asrLanguage == AsrLanguage.EN) "EN" else "RU",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = BrandBlue,
-                        )
-                    }
                     IconButton(onClick = onOpenHistory) {
                         Icon(Icons.Default.History, contentDescription = stringResource(R.string.action_history))
                     }
@@ -353,6 +337,15 @@ fun InterviewScreen(
                             expanded = showOverflowMenu,
                             onDismissRequest = { showOverflowMenu = false },
                         ) {
+                            DropdownMenuItem(
+                                text = {
+                                    Text("Язык распознавания: " + if (asrLanguage == AsrLanguage.EN) "EN" else "RU")
+                                },
+                                onClick = {
+                                    showOverflowMenu = false
+                                    onOpenAbout()
+                                },
+                            )
                             // Пункт 1: удалить из истории (только если есть сохранённая сессия)
                             if (currentSessionId != null && phase == InterviewViewModel.Phase.READY) {
                                 DropdownMenuItem(
