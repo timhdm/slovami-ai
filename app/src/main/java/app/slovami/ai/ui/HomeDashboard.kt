@@ -44,6 +44,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import app.slovami.ai.data.SessionStore
 import app.slovami.ai.ui.theme.ElectricViolet
 import app.slovami.ai.ui.theme.ElectricVioletCard
@@ -71,9 +72,9 @@ internal fun HomeDashboard(
 
     Column(
         modifier = modifier.verticalScroll(rememberScrollState()).padding(horizontal = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(4.dp))
         Text(
             buildAnnotatedString {
                 append("От ")
@@ -82,7 +83,7 @@ internal fun HomeDashboard(
                 withStyle(SpanStyle(color = ElectricViolet.neonBlue)) { append("готового текста") }
                 append(".")
             },
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.headlineMedium.copy(fontSize = 21.sp, lineHeight = 26.sp),
             color = ElectricViolet.text,
             fontWeight = FontWeight.Bold,
         )
