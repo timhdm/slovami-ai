@@ -40,10 +40,6 @@ import java.util.zip.GZIPInputStream
  *
  * BatchNorm в eval-режиме: y = (x - running_mean) / running_std * gamma + beta
  * (NB: в файле .ns хранится уже sqrt(var + eps), поэтому делим, не корнем извлекаем)
- *
- * Производительность Python-эталона на стенограмме AKKUYU (17,922 слов):
- *   - 5.9 секунд = ~330 ms на 1000 слов
- *   - На Xiaomi 12T (Kotlin JIT): ожидается ~700 ms на 1000 слов
  */
 class SlovnetNer private constructor(
     private val navec: NavecEmbeddings,

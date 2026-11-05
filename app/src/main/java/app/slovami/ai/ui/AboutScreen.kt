@@ -63,13 +63,7 @@ import app.slovami.ai.ui.theme.BrandBlue
 import app.slovami.ai.ui.theme.BrandPurple
 
 /**
- * Экран «О программе» — содержит:
- *  - Логотип и название приложения
- *  - Версию (BuildConfig.VERSION_NAME)
- *  - Краткое описание
- *  - **Выбор языка распознавания** (RU/EN, с диалогом скачать для EN)
- *  - Используемые технологии (упоминание upstream проектов с лицензиями)
- *  - Информацию о лицензии самого приложения
+ * Сведения о приложении, атрибуция моделей и выбор языка распознавания.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,7 +85,6 @@ fun AboutScreen(
         }
     }
 
-    // Диалог подтверждения скачивания EN моделей.
     var showDownloadDialog by remember { mutableStateOf(false) }
 
     fun openUrl(url: String) {
@@ -173,12 +166,10 @@ fun AboutScreen(
                 .padding(horizontal = 20.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            // ------------------ Header: logo + name + version ------------------
             HeaderSection()
 
             Spacer(Modifier.height(32.dp))
 
-            // ------------------ Description ------------------
             Text(
                 text = stringResource(R.string.about_description),
                 style = MaterialTheme.typography.bodyMedium,
@@ -193,7 +184,6 @@ fun AboutScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // ------------------ Language selection ------------------
             SectionHeader(text = stringResource(R.string.about_section_language))
 
             Spacer(Modifier.height(8.dp))
@@ -228,7 +218,6 @@ fun AboutScreen(
                 onClick = { onLanguageClick(AsrLanguage.EN) },
             )
 
-            // Прогресс-бар во время скачивания EN моделей
             if (isDownloadingEn) {
                 Spacer(Modifier.height(16.dp))
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -256,7 +245,6 @@ fun AboutScreen(
             HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
             Spacer(Modifier.height(24.dp))
 
-            // ------------------ Acknowledgments ------------------
             SectionHeader(text = stringResource(R.string.about_section_acknowledgments))
 
             Spacer(Modifier.height(8.dp))
@@ -306,7 +294,6 @@ fun AboutScreen(
             HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
             Spacer(Modifier.height(24.dp))
 
-            // ------------------ License ------------------
             SectionHeader(text = stringResource(R.string.about_section_license))
 
             Spacer(Modifier.height(8.dp))
@@ -326,9 +313,9 @@ fun AboutScreen(
 @Composable
 private fun HeaderSection() {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        // Большой логотип приложения (используем mipmap-foreground)
+        // Текущий векторный логотип Slovami AI, общий с launcher icon.
         Icon(
-            painter = painterResource(R.mipmap.ic_launcher_foreground),
+            painter = painterResource(R.drawable.ic_launcher_electric_foreground),
             contentDescription = null,
             tint = androidx.compose.ui.graphics.Color.Unspecified,
             modifier = Modifier
@@ -357,7 +344,6 @@ private fun HeaderSection() {
 
         Spacer(Modifier.height(12.dp))
 
-        // Версия
         val versionText = "${stringResource(R.string.about_version_label)} ${BuildConfig.VERSION_NAME}"
         Text(
             text = versionText,

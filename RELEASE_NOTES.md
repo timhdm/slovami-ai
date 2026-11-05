@@ -2,6 +2,10 @@
 
 First public release of Slovami AI, an Android app for offline interview transcription.
 
+These historical notes describe v1.0.0 only. See [README.md](README.md) for
+the current feature set and [app/build.gradle.kts](app/build.gradle.kts) for
+the current source version.
+
 ## What it does
 
 - Records audio interviews directly on your phone

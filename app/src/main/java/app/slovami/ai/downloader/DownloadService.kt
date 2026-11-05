@@ -7,7 +7,6 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -25,23 +24,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * Foreground service for downloading models.
- *
- * Зачем сервис, а не просто coroutine во ViewModel:
- *   - Скачивание занимает 5-15 минут (332 МБ на ~500 КБ/с)
- *   - Если пользователь сворачивает приложение → Activity уничтожается → coroutine
- *     отменяется → скачивание прерывается. Это плохо UX.
- *   - Foreground service защищён от kill'а системой (пока показывает notification)
- *   - Notification даёт пользователю прогресс в шторке + кнопку Cancel
- *
- * Lifecycle:
- *   1. UI вызывает start(ctx, models) → стартует service в foreground режиме
- *   2. Service показывает notification с прогрессом (обновляется каждые ~500ms)
- *   3. По завершении (success или error) — обновляет notification + останавливается
- *   4. Cancel: pendingIntent на ACTION_CANCEL → service отменяет job + останавливается
- *
- * Прогресс наблюдается через companion object'ные StateFlow'ы — DownloaderViewModel
- * подписывается на них и рендерит UI.
+ * Загружает модели в foreground-сервисе и публикует StateFlow для UI.
+ * Отмена останавливает job; частичные файлы остаются для продолжения загрузки.
  */
 class DownloadService : Service() {
 
@@ -78,9 +62,6 @@ class DownloadService : Service() {
         }
     }
 
-    // ────────────────────────────────────────────────────────────────────
-    // Download orchestration
-    // ────────────────────────────────────────────────────────────────────
 
     private fun startDownload() {
         if (downloadJob?.isActive == true) {
@@ -182,12 +163,8 @@ class DownloadService : Service() {
         if (downloadJob?.isActive != true) stopSelf()
     }
 
-    // ────────────────────────────────────────────────────────────────────
-    // Notification building
-    // ────────────────────────────────────────────────────────────────────
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val nm = getSystemService(NotificationManager::class.java)
         val channel = NotificationChannel(
             CHANNEL_ID,
@@ -276,9 +253,6 @@ class DownloadService : Service() {
         getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notif)
     }
 
-    // ────────────────────────────────────────────────────────────────────
-    // Companion: API + state observability
-    // ────────────────────────────────────────────────────────────────────
 
     enum class ServiceState { IDLE, DOWNLOADING, SUCCESS, ERROR, CANCELLED }
 

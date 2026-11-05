@@ -14,17 +14,8 @@ import androidx.core.app.NotificationCompat
 import app.slovami.ai.R
 
 /**
- * Foreground service который не делает САМ запись — он только держит
- * приложение «живым» с notification во время длительной записи интервью.
- *
- * Архитектура: реальную запись ведёт [AudioRecorder] из ViewModel/Activity.
- * Этот сервис нужен только чтобы Android не убил процесс при сворачивании
- * приложения или экономии памяти.
- *
- * Запуск:
- *   ContextCompat.startForegroundService(ctx, Intent(ctx, RecordingService::class.java))
- * Остановка:
- *   ctx.stopService(Intent(ctx, RecordingService::class.java))
+ * Уведомление foreground-записи; сам звук записывает AudioRecorder.
+ * Сервис запускается и останавливается при смене фазы записи.
  */
 class RecordingService : Service() {
 
@@ -69,15 +60,13 @@ class RecordingService : Service() {
     }
 
     private fun createChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                getString(R.string.notification_channel_recording),
-                NotificationManager.IMPORTANCE_LOW,
-            ).apply { description = getString(R.string.notification_recording_text) }
-            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            nm.createNotificationChannel(channel)
-        }
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            getString(R.string.notification_channel_recording),
+            NotificationManager.IMPORTANCE_LOW,
+        ).apply { description = getString(R.string.notification_recording_text) }
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        nm.createNotificationChannel(channel)
     }
 
     companion object {

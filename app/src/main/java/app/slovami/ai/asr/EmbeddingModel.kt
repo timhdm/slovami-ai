@@ -4,17 +4,8 @@ import androidx.annotation.StringRes
 import app.slovami.ai.R
 
 /**
- * Выбор модели для speaker embedding в диаризации.
- *
- * Каждая модель — отдельный ONNX-файл в assets/asr/. Размер и скорость
- * сильно отличаются. Качество (DER — diarization error rate) тоже,
- * но для аудиторских интервью с 1-4 собеседниками все три приемлемы.
- *
- * Sherpa-onnx позволяет менять embedding-модель только через пересоздание
- * OfflineSpeakerDiarization — это занимает 1-2 сек, но не блокирует UI.
- *
- * Текстовые метки (displayName, sizeLabel, description) — ресурсы strings.xml,
- * резолвятся в UI через stringResource(…).
+ * Модели speaker embedding. Смена модели требует пересоздания диаризатора;
+ * подписи UI берутся из ресурсов.
  */
 enum class EmbeddingModel(
     val assetPath: String,

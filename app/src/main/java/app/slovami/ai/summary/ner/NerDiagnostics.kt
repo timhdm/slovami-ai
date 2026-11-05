@@ -9,18 +9,8 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 
 /**
- * Диагностический прогон Kotlin порта Slovnet NER против Python ground truth.
- *
- * Цель: найти первое расхождение между Kotlin inference и эталонным numpy
- * inference на тестовом предложении "Александра Костюченко работает в компании Росатом ."
- *
- * Используется ground truth из assets/debug/:
- *   - input_emb.bin (FloatArray [7, 330]) — эмбеддинги из эталонного Python
- *   - expected_conv1_post_relu.bin, expected_norm1.bin, ... — эталоны каждого слоя
- *   - expected_emiss.bin — emissions перед CRF
- *   - expected_tags.bin (IntArray [7]) — финальные теги
- *
- * Результат пишется в filesDir/slovnet_diag.txt — можно достать через adb pull.
+ * Сравнивает промежуточные тензоры NER с эталонами из assets/debug.
+ * Результат перезаписывается в filesDir/slovnet_diag.txt.
  */
 object NerDiagnostics {
 
@@ -53,7 +43,6 @@ object NerDiagnostics {
         log()
 
         try {
-            // ===== Загрузка ground truth =====
             val input = loadFloatAsset(context, "debug/input_emb.bin", N_TOKENS * INPUT_DIM)
             val expConv1 = loadFloatAsset(context, "debug/expected_conv1_post_relu.bin", N_TOKENS * L1_OUT)
             val expNorm1 = loadFloatAsset(context, "debug/expected_norm1.bin", N_TOKENS * L1_OUT)
@@ -71,13 +60,11 @@ object NerDiagnostics {
             log("       expTags  = ${expTags.toList()}")
             log()
 
-            // ===== Forward pass с захватом промежутков =====
             val dump = SlovnetNer.Intermediates()
             val tags = ner.forwardFromEmbeddings(input, N_TOKENS, dump)
             log("[Forward] complete")
             log()
 
-            // ===== Сверка слой за слоем =====
             log("--- Layer-by-layer comparison ---")
             compare(sb, "conv1+relu", dump.conv1PostRelu, expConv1)
             compare(sb, "norm1     ", dump.norm1, expNorm1)

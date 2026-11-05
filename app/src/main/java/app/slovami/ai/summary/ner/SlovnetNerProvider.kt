@@ -4,21 +4,8 @@ import app.slovami.ai.summary.default_tier.NerEntity
 import java.io.File
 
 /**
- * Реализация [NerProvider] на базе Slovnet NER.
- *
- * Использует:
- *  - [NavecEmbeddings] для квантованных word embeddings (250K русских слов)
- *  - [SlovnetNer] для inference (3 conv layers + CRF)
- *  - Простой regex-токенизатор (razdel-tokenize аналог)
- *  - [NerJunkFilter] для отбрасывания междометий
- *
- * Порядок работы:
- *  1. Разбить текст на предложения через RuSentenceSegmenter (предполагается, что
- *     текст уже разбит снаружи; здесь мы делаем токенизацию по предложениям).
- *  2. Для каждого предложения: токенизация → SlovnetNer.predict → extractSpans
- *  3. Аккумуляция counts: HashMap<text, count> отдельно для PER/ORG/LOC
- *  4. Применить junk-filter
- *  5. Вернуть top-N сущностей в виде NerEntity
+ * Для каждого предложения выполняет Slovnet NER, суммирует упоминания PER/ORG/LOC
+ * и применяет фильтр ложных сущностей.
  */
 class SlovnetNerProvider(
     val ner: SlovnetNer,

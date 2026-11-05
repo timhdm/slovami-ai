@@ -17,27 +17,8 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
- * Английский ASR через sherpa-onnx Whisper base.en (int8).
- *
- * Это отдельный сервис — не путать с основным [AsrService] (русский GigaAM).
- * Они могут существовать параллельно, и UI выбирает какой использовать
- * в зависимости от языка пользователя.
- *
- * Whisper имеет встроенную пунктуацию и капитализацию — это ключевое
- * преимущество перед другими английскими ASR-моделями.
- *
- * Особенности Whisper API в sherpa-onnx (отличается от nemo CTC):
- *   - Использует encoder + decoder (две ONNX-модели вместо одной)
- *   - featureDim другой (Whisper использует 80 mel-каналов)
- *   - Нет встроенной диаризации — для multi-speaker нужно использовать
- *     основной AsrService.diarization() для сегментации, потом резать
- *     аудио и кормить в Whisper по сегментам
- *
- * Использование:
- *   val svc = EnglishAsrService(ctx)
- *   svc.initialize()
- *   val text = svc.transcribe(samples, sampleRate)
- *   svc.release()
+ * Английский ASR через Whisper base.en (encoder + decoder).
+ * Диаризацию выполняет AsrService; длинные сегменты делит вызывающий код.
  */
 class EnglishAsrService(private val ctx: Context) {
 

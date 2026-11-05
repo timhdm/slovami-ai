@@ -15,28 +15,8 @@ import androidx.core.content.ContextCompat
 import app.slovami.ai.R
 
 /**
- * Foreground service который держит процесс приложения живым во время
- * ДОЛГИХ ВЫЧИСЛЕНИЙ: импорт аудио, распознавание (ASR), диаризация,
- * генерация резюме с NER.
- *
- * Отличие от [RecordingService]:
- *  - RecordingService держит процесс во время ЗАПИСИ (тип microphone)
- *  - ProcessingService держит процесс во время ОБРАБОТКИ (тип dataSync)
- *
- * Без этого сервиса Android может убить процесс при сворачивании или
- * входящем звонке, и пользователь потеряет всю работу (импортированный
- * файл, частично распознанные сегменты, готовое резюме).
- *
- * Использование из ViewModel/Activity:
- *   ProcessingService.start(ctx, "Распознаю запись...")
- *   try {
- *     // длительная работа
- *   } finally {
- *     ProcessingService.stop(ctx)
- *   }
- *
- * Notification использует тот же канал что и RecordingService для единообразия.
- * Если оба сервиса работают одновременно — пользователь видит два уведомления.
+ * Foreground-сервис для импорта, ASR и резюме; используется LongTaskRunner.
+ * Не записывает микрофон и имеет отдельный канал уведомлений обработки.
  */
 class ProcessingService : Service() {
 
@@ -86,15 +66,13 @@ class ProcessingService : Service() {
     }
 
     private fun createChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                getString(R.string.notification_channel_processing),
-                NotificationManager.IMPORTANCE_LOW,
-            ).apply { description = getString(R.string.processing_default_text) }
-            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            nm.createNotificationChannel(channel)
-        }
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            getString(R.string.notification_channel_processing),
+            NotificationManager.IMPORTANCE_LOW,
+        ).apply { description = getString(R.string.processing_default_text) }
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        nm.createNotificationChannel(channel)
     }
 
     companion object {

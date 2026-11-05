@@ -28,21 +28,7 @@ import app.slovami.ai.ui.history.HistoryScreen
 import app.slovami.ai.ui.theme.InterviewTheme
 
 /**
- * Точка входа в приложение SlovamiAI.
- *
- * Маршрутизация экранов:
- *   - DOWNLOADER : первый запуск, скачиваем модели (если ещё не скачаны)
- *   - MAIN       : основной экран (запись/распознавание/экспорт)
- *   - HISTORY    : список сохранённых сессий
- *
- * Логика стартового экрана:
- *   - При запуске проверяем ModelStorage.isFirstRunComplete()
- *   - Если все REQUIRED модели на диске → MAIN
- *   - Иначе → DOWNLOADER (после успеха автоматически переход на MAIN)
- *
- * Foreground-запись: при переходе ViewModel в RECORDING/PAUSED стартуем
- * RecordingService, иначе останавливаем. Это держит приложение «живым»
- * в фоне на всё время записи (для часовых интервью обязательно).
+ * Переключает экраны и управляет foreground-сервисом по фазе записи.
  */
 class MainActivity : AppCompatActivity() {
 

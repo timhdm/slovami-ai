@@ -72,16 +72,7 @@ import app.slovami.ai.ui.theme.BrandPurple
 import app.slovami.ai.ui.theme.RecordingRed
 
 /**
- * Экран скачивания моделей при первом запуске.
- *
- * Состояния (соответствуют DownloaderViewModel.Phase):
- *  - CHECKING        : показываем спиннер "Проверяем модели..."
- *  - NEEDS_DOWNLOAD  : welcome-экран с описанием и кнопкой "Скачать"
- *  - DOWNLOADING     : прогресс-бар + текущая скорость + кнопка "Отмена"
- *  - SUCCESS         : кратко "Готово!" + onComplete()
- *  - ERROR           : описание ошибки + кнопки "Повторить" / "Закрыть"
- *
- * @param onComplete — вызывается когда все модели скачаны (переход на главный экран).
+ * Первичная загрузка моделей. onComplete вызывается после успешной подготовки.
  */
 @Composable
 fun DownloaderScreen(
@@ -98,10 +89,8 @@ fun DownloaderScreen(
     val currentModelBytes by vm.currentModelBytes.collectAsStateWithLifecycle()
     val errorMessage by vm.errorMessage.collectAsStateWithLifecycle()
 
-    // Состояние диалога подтверждения выхода
     var showExitDialog by remember { mutableStateOf(false) }
 
-    // Состояние menu выбора языка
     var showLanguageMenu by remember { mutableStateOf(false) }
     val ctx = androidx.compose.ui.platform.LocalContext.current
 
@@ -138,7 +127,6 @@ fun DownloaderScreen(
         color = ElectricViolet.background,
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Основной контент (по центру)
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -179,14 +167,12 @@ fun DownloaderScreen(
                 }
             }
 
-            // Кнопки в правом верхнем углу: язык + выход
             if (phase != DownloaderViewModel.Phase.SUCCESS && phase != DownloaderViewModel.Phase.DOWNLOADING) {
                 Row(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp),
                 ) {
-                    // Кнопка смены языка (иконка глобуса)
                     Box {
                         IconButton(onClick = { showLanguageMenu = true }) {
                             Icon(
@@ -215,7 +201,6 @@ fun DownloaderScreen(
                             )
                         }
                     }
-                    // Кнопка выхода
                     IconButton(onClick = { showExitDialog = true }) {
                         Icon(
                             imageVector = Icons.Default.Close,
@@ -228,7 +213,6 @@ fun DownloaderScreen(
         }
     }
 }
-
 
 @Composable
 private fun BrandHeader() {
@@ -246,7 +230,6 @@ private fun CheckingState() {
     Spacer(Modifier.height(18.dp))
     Text(stringResource(R.string.downloader_checking), color = ElectricViolet.text)
 }
-
 
 @Composable
 private fun ModelDownloadList(
@@ -406,7 +389,6 @@ private fun setDownloaderLanguage(
     val prefs = ctx.getSharedPreferences("interview_prefs", android.content.Context.MODE_PRIVATE)
     prefs.edit().putString("asr_language", asrLang).apply()
 
-    // Переключаем язык UI — Activity будет пересоздана
     val locales = androidx.core.os.LocaleListCompat.forLanguageTags(localeTag)
     androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(locales)
 }

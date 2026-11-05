@@ -11,28 +11,8 @@ import java.io.File
 import java.io.FileInputStream
 
 /**
- * Конвертация WAV (16kHz mono PCM16) → M4A (AAC-LC).
- *
- * Используется ТОЛЬКО `android.media.MediaCodec` + `android.media.MediaMuxer` —
- * никаких внешних библиотек. Размер: ~12x меньше чем WAV для речи (час → ~10 МБ).
- *
- * Параметры кодирования:
- *   - кодек:   audio/mp4a-latm (AAC-LC)
- *   - битрейт: 64 kbps (хватает для речи и диктофонной записи)
- *   - sample rate: 16000 Hz (как в WAV — без ресемплинга)
- *   - каналы:  1 (моно)
- *   - контейнер: MP4 / M4A
- *
- * Использование (suspend, IO):
- *   val m4a = Mp4Encoder.encode(wavFile, m4aOutFile)
- *   if (m4a != null) wavFile.delete()
- *
- * Возвращает выходной файл при успехе, null при ошибке.
- * Безопасно для повторных вызовов: если выходной файл уже есть — перезаписывается.
- *
- * Внимание: MediaCodec на Xiaomi/MediaTek известен капризами на edge cases
- * (некоторые форматы не поддерживаются нативно). Здесь параметры консервативные —
- * AAC-LC 16kHz mono всегда работает на любом Android 5+.
+ * Кодирует WAV 16 kHz mono PCM16 в M4A/AAC-LC через MediaCodec и MediaMuxer.
+ * Возвращает файл при успехе, null при ошибке; исходный WAV удаляет вызывающий код.
  */
 object Mp4Encoder {
 

@@ -5,17 +5,7 @@ import app.slovami.ai.summary.extraction.RiskKeywordMatcher
 import app.slovami.ai.summary.lexrank.LexRankSummarizer
 
 /**
- * Сборка markdown-резюме из извлечённых данных.
- *
- * Структура совпадает с Test F (test_f_no_llm.md):
- *  1. Локализация и контекст
- *  2. Главные действующие лица (NER, заполняется когда NER появится)
- *  3. Организации
- *  4. Топ-5 ключевых цитат
- *  5. Top-15 фрагментов в порядке появления
- *  6. Выявленные проблемы и риски
- *  7. Цифры с контекстом
- *  8. Полный реестр имён и организаций
+ * Собирает Markdown из извлечённых сущностей, цитат, чисел и рисков.
  */
 object TemplateBuilder {
 
@@ -56,7 +46,7 @@ object TemplateBuilder {
                 appendLine("Интервью посвящено объектам в локации **$main**.")
             }
         } else {
-            appendLine("*Локации не извлечены (NER пока не подключен).*")
+            appendLine("*Локации не извлечены.*")
         }
         appendLine()
         if (topWords.isNotEmpty()) {
@@ -74,7 +64,7 @@ object TemplateBuilder {
                 appendLine("- **${p.text}** — упомянут ${p.count} раз")
             }
         } else {
-            appendLine("*Имена будут извлечены после подключения NER (Sprint 2).*")
+            appendLine("*Имена не извлечены.*")
         }
         appendLine()
 
@@ -86,7 +76,7 @@ object TemplateBuilder {
                 appendLine("- **${o.text}** (${o.count}x)")
             }
         } else {
-            appendLine("*Организации будут извлечены после подключения NER (Sprint 2).*")
+            appendLine("*Организации не извлечены.*")
         }
         appendLine()
 

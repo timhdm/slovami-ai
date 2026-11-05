@@ -27,19 +27,9 @@ import java.util.zip.GZIPInputStream
  *     centroid_idx = indexes[w][s]
  *     vector[s*3..s*3+3] = codes[s][centroid_idx][0..3]
  *
- * Это даёт 300-мерный float32 вектор.
+ * Это даёт 300-мерный float32 вектор. Коды и индексы загружаются в массивы в heap.
  *
  * vocab.bin — navec binary: gzip { uint32 count, uint32[count] wordCounts, UTF-8 text '\n'-separated }.
- *
- * Производительность:
- *   - Файлы читаются через MappedByteBuffer (zero-copy)
- *   - Lookup слова: ~5 микросекунд (HashMap lookup + 100 byte reads)
- *   - На стенограмме 18k слов получается ~90ms всего на эмбеддинги
- *
- * Память:
- *   - Codes: 307200 bytes float32 = ~300 KB загружается в массив
- *   - Indexes: 25 MB остаётся mmap'ed (не загружается в кучу)
- *   - Vocab: ~1.3 MB строк + HashMap ~5 MB = ~6 MB
  */
 class NavecEmbeddings private constructor(
     private val codes: FloatArray,        // [subdim * centroids * chunk]
@@ -66,10 +56,8 @@ class NavecEmbeddings private constructor(
             require(pqFile.exists()) { "pq.bin not found: ${pqFile.path}" }
             require(vocabFile.exists()) { "vocab.bin not found: ${vocabFile.path}" }
 
-            // ====================================================================
             // Загрузка vocab (navec binary format):
             //   gzip { uint32 count, uint32[count] wordCounts, UTF-8 text words '\n' }
-            // ====================================================================
             val vocabBytes = vocabFile.readBytes()
             val decompressed: ByteArray = if (vocabBytes.size >= 2 &&
                 vocabBytes[0] == 0x1F.toByte() && vocabBytes[1] == 0x8B.toByte()) {
@@ -125,10 +113,8 @@ class NavecEmbeddings private constructor(
                 val codes = FloatArray(SUBDIM * CENTROIDS * CHUNK)
                 codesBuf.asFloatBuffer().get(codes)
 
-                // Indexes (25 MB): загружаем в ByteArray.
-                // Раньше было mmap (zero-copy), но это давало SIGSEGV когда NER работал на
-                // Dispatchers.Default одновременно с другими mmap'ed onnxruntime регионами.
-                // 25 МБ в heap это ок — у GigaAM всё равно в ~300 МБ идёт в native.
+                // Индексы читаем в heap: mmap ранее вызывал SIGSEGV при параллельном NER/ONNX.
+                // Не возвращать mmap без воспроизведения и проверки этого сценария.
                 val indexes = ByteArray(INDEXES_SIZE)
                 val indexesByteBuf = ByteBuffer.wrap(indexes).order(ByteOrder.LITTLE_ENDIAN)
                 channel.read(indexesByteBuf, (HEADER_SIZE + CODES_SIZE).toLong())

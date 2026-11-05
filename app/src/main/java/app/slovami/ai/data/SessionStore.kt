@@ -13,20 +13,9 @@ import app.slovami.ai.asr.TranscriptWord
 import java.io.File
 
 /**
- * Хранилище сессий интервью — JSON-файлы в `app/files/sessions/`.
- *
- * Каждая сессия = один файл `session_<ts>.json`. Внутри:
- *   - id            — уникальный ID (timestamp-строка)
- *   - createdAt     — System.currentTimeMillis() создания
- *   - audioFileName — имя аудио в `app/files/recordings/` (.m4a или .wav), или null если удалено
- *   - metadata      — InterviewMetadata
- *   - participants  — Participants (Map<Int, String>)
- *   - transcript    — InterviewTranscript
- *
- * Не использует SQL — для аудитора десятки записей в год, listFiles() справится.
- *
- * Все операции синхронные blocking (быстрые: парсинг JSON 1–10 МБ).
- * Вызывать из viewModelScope в Dispatchers.IO.
+ * Хранит JSON сессий в filesDir/sessions и ссылки на аудио в filesDir/recordings.
+ * Операции блокирующие: вызывать из Dispatchers.IO. Формат JSON используется
+ * при повторном открытии сессий, поэтому изменения должны сохранять совместимость.
  */
 object SessionStore {
 
@@ -60,9 +49,7 @@ object SessionStore {
         val audioFile: File?,
     )
 
-    // -----------------------------------------------------------------
     // Запись / чтение / удаление
-    // -----------------------------------------------------------------
 
     /**
      * Сохранить сессию в JSON. Возвращает ID сессии (для последующего обновления).
@@ -162,9 +149,7 @@ object SessionStore {
         return anyDeleted
     }
 
-    // -----------------------------------------------------------------
     // Сериализация / десериализация
-    // -----------------------------------------------------------------
 
     private fun serialize(
         id: String,

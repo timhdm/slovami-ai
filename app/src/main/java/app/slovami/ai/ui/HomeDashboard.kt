@@ -136,16 +136,16 @@ private fun HomeDashboardContent(
                         append("От ")
                         withStyle(
                             SpanStyle(brush = Brush.horizontalGradient(
-                                listOf(ElectricViolet.accent, ElectricViolet.violet),
+                                listOf(ElectricViolet.accent, ElectricViolet.neonBlue, Color(0xFF6517EF)),
                             )),
                         ) { append("записи") }
-                        append("\nдо ")
+                        append("\nдо готового")
                         withStyle(
                             SpanStyle(brush = Brush.horizontalGradient(
-                                listOf(ElectricViolet.neonBlue, ElectricViolet.accent),
+                                listOf(Color(0xFF6517EF), ElectricViolet.neonBlue, ElectricViolet.accent),
                             )),
-                        ) { append("готового текста") }
-                        append(".")
+                        ) { append(" текста") }
+                        append("")
                     },
                     style = MaterialTheme.typography.headlineMedium.copy(
                         fontSize = 27.sp,
@@ -243,8 +243,7 @@ private fun RecentRecordingCard(
         horizontalArrangement = Arrangement.spacedBy(9.dp),
     ) {
         Box(
-            modifier = Modifier.size(39.dp)
-                .background(Color(0xFF302047), RoundedCornerShape(50)),
+            modifier = Modifier.size(39.dp),
             contentAlignment = Alignment.Center,
         ) {
             Icon(Icons.Default.PlayArrow, contentDescription = null, tint = ElectricViolet.text)

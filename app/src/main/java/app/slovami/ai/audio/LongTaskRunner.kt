@@ -14,26 +14,10 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 /**
- * Singleton-исполнитель длинных задач: импорт аудио, распознавание, генерация резюме.
- *
- * Зачем: ViewModel и его [viewModelScope] разрушаются вместе с Activity при
- * звонке, сворачивании, повороте экрана и т.п. Если запустить долгий импорт
- * через viewModelScope, входящий звонок разрушит Activity → отменит scope →
- * MediaCodec прервётся → пользователь потеряет работу.
- *
- * Решение: тяжёлая работа выполняется в [taskScope] — собственном
- * application-scope CoroutineScope. ViewModel только публикует _команды_
- * (startImport, startRecognition) и подписывается на StateFlow прогресса/
- * результата. При пересоздании Activity новый ViewModel пересоединяется
- * к тем же потокам.
- *
- * Время жизни корутины:
- *  - стартует [ProcessingService] (foreground, тип dataSync) — Android не
- *    убивает процесс пока сервис активен
- *  - в начале работы — `ProcessingService.start()`, в `finally` — `stop()`
- *  - если задача уже идёт, повторный вызов игнорируется
- *
- * Все методы потокобезопасны (StateFlow + SupervisorJob).
+ * Выполняет импорт, ASR и резюме в application-scope, независимо от пересоздания UI.
+ * Новый ViewModel получает прогресс и результат через общие StateFlow.
+ * ProcessingService запускается на время задачи и останавливается в finally;
+ * это не гарантирует сохранение задачи при завершении процесса Android.
  */
 object LongTaskRunner {
 
@@ -41,8 +25,6 @@ object LongTaskRunner {
 
     /** Application-scope: переживает разрушение Activity/ViewModel. */
     private val taskScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
-    // ---------- IMPORT ----------
 
     private val _importInProgress = MutableStateFlow(false)
     val importInProgress: StateFlow<Boolean> = _importInProgress.asStateFlow()
@@ -114,8 +96,6 @@ object LongTaskRunner {
         }
         return true
     }
-
-    // ---------- RECOGNITION ----------
 
     /**
      * ViewModel должен вызвать это после того, как обработал [importResult],
@@ -214,8 +194,6 @@ object LongTaskRunner {
         _recognitionInProgress.value = false
         _recognitionStatus.value = ""
     }
-
-    // ---------- SUMMARY ----------
 
     private val _summaryInProgress = MutableStateFlow(false)
     val summaryInProgress: StateFlow<Boolean> = _summaryInProgress.asStateFlow()

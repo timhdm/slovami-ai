@@ -8,21 +8,9 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 /**
- * Диагностический тест Kotlin порта Slovnet NER.
- *
- * Зачем: на устройстве Slovnet модели загружаются ОК (`LOAD OK` в status файле),
- * но inference возвращает 0 entities. Эталонный Python на тех же файлах
- * находит «Александра Костюченко» (PER) и «Росатом» (ORG).
- *
- * Этот тест:
- *   1. Загружает веса напрямую из app/src/main/assets/summary/slovnet_ner/arrays/
- *   2. Берёт готовый input_emb.bin (эмбеддинги из эталонного Python для тестового предложения)
- *   3. Прогоняет через те же conv1d / BN / Linear / CRF функции что в проде
- *   4. После каждого слоя сравнивает с expected_*.bin (тоже из эталонного Python)
- *   5. Печатает в лог где первое расхождение
- *
- * Тестовое предложение: "Александра Костюченко работает в компании Росатом ."
- * Эталонные теги: [B-PER, I-PER, O, O, O, B-ORG, O]
+ * Сравнивает слои Kotlin NER и итоговые BIO-теги с бинарными Python-эталонами.
+ * Fixtures: assets/summary/slovnet_ner/arrays и assets/debug.
+ * Диагностический отчёт: build/reports/slovnet/kotlin_dump.txt.
  */
 class SlovnetDumpTest {
 
@@ -48,9 +36,7 @@ class SlovnetDumpTest {
         const val EPS = 1e-3f
     }
 
-    // ============================================================
     //   Утилиты загрузки бинарных файлов
-    // ============================================================
 
     private fun loadFloat(file: File, expected: Int): FloatArray {
         require(file.exists()) { "Not found: ${file.absolutePath}" }
@@ -74,9 +60,7 @@ class SlovnetDumpTest {
     private fun loadWeightFromArrays(idx: Int, expected: Int): FloatArray =
         loadFloat(File(ARRAYS_DIR, "$idx.bin"), expected)
 
-    // ============================================================
     //   Реализации слоёв (КОПИЯ из SlovnetNer.kt, чтобы не трогать прод)
-    // ============================================================
 
     /** Conv1D с kernel=3, padding=1. Input [seqLen * inCh] channels-LAST. */
     private fun conv1d(
@@ -167,9 +151,7 @@ class SlovnetDumpTest {
         return path
     }
 
-    // ============================================================
     //   Утилиты сравнения и логгинга
-    // ============================================================
 
     private val log = StringBuilder()
 
@@ -221,9 +203,7 @@ class SlovnetDumpTest {
         }
     }
 
-    // ============================================================
     //   Главный тест
-    // ============================================================
 
     @Test
     fun dumpAndCompare() {
@@ -232,7 +212,6 @@ class SlovnetDumpTest {
         logLine("GROUND_TRUTH_DIR: ${GROUND_TRUTH_DIR.absolutePath}")
         logLine()
 
-        // ========== Шаг 1: Загрузить веса ==========
         logLine("[1] Loading weights...")
         val l1ConvW = loadWeightFromArrays(1, L1_OUT * INPUT_DIM * KERNEL)
         val l1ConvB = loadWeightFromArrays(2, L1_OUT)
@@ -259,7 +238,6 @@ class SlovnetDumpTest {
         logLine("  l1_w[0..4]: ${l1ConvW.sliceArray(0..4).toList()}")
         logLine()
 
-        // ========== Шаг 2: Загрузить input и эталоны ==========
         logLine("[2] Loading input embeddings and expected outputs...")
         val input = loadFloat(File(GROUND_TRUTH_DIR, "input_emb.bin"), N_TOKENS * INPUT_DIM)
         val expConv1PostRelu = loadFloat(File(GROUND_TRUTH_DIR, "expected_conv1_post_relu.bin"), N_TOKENS * L1_OUT)
@@ -277,7 +255,6 @@ class SlovnetDumpTest {
         logLine("  expTags: ${expTags.toList()}")
         logLine()
 
-        // ========== Шаг 3: Layer 1 ==========
         logLine("[3] Layer 1: conv1d(330→256) + ReLU + BN")
         var x = conv1d(input, N_TOKENS, INPUT_DIM, l1ConvW, l1ConvB, L1_OUT)
         logLine("  ${summarize("after conv1 (pre-relu)", x)}")
@@ -289,7 +266,6 @@ class SlovnetDumpTest {
         compare("norm1", x, expNorm1)
         logLine()
 
-        // ========== Шаг 4: Layer 2 ==========
         logLine("[4] Layer 2: conv1d(256→128) + ReLU + BN")
         x = conv1d(x, N_TOKENS, L1_OUT, l2ConvW, l2ConvB, L2_OUT)
         reluInPlace(x)
@@ -298,7 +274,6 @@ class SlovnetDumpTest {
         compare("norm2", x, expNorm2)
         logLine()
 
-        // ========== Шаг 5: Layer 3 ==========
         logLine("[5] Layer 3: conv1d(128→64) + ReLU + BN")
         x = conv1d(x, N_TOKENS, L2_OUT, l3ConvW, l3ConvB, L3_OUT)
         reluInPlace(x)
@@ -307,13 +282,11 @@ class SlovnetDumpTest {
         compare("norm3", x, expNorm3)
         logLine()
 
-        // ========== Шаг 6: Head ==========
         logLine("[6] Linear head (64→8)")
         val emissions = linearHead(x, N_TOKENS, L3_OUT, NUM_TAGS, headW, headB)
         compare("emissions", emissions, expEmiss)
         logLine()
 
-        // ========== Шаг 7: CRF ==========
         logLine("[7] CRF Viterbi decode")
         val tags = crfDecode(emissions, N_TOKENS, crfTrans)
         logLine("  Kotlin tags:   ${tags.toList()}")
@@ -326,7 +299,6 @@ class SlovnetDumpTest {
         logLine("  TAGS MATCH: $tagsMatch")
         logLine()
 
-        // ========== Финал: сохранить лог ==========
         logLine("=== DONE ===")
         DUMP_OUT_FILE.parentFile?.mkdirs()
         DUMP_OUT_FILE.writeText(log.toString())

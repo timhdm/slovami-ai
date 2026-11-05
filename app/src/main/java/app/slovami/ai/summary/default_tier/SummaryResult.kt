@@ -5,15 +5,7 @@ import app.slovami.ai.summary.extraction.RiskKeywordMatcher
 import app.slovami.ai.summary.lexrank.LexRankSummarizer
 
 /**
- * Tier — какой уровень саммаризации применён.
- */
-enum class SummaryTier {
-    DEFAULT,  // только NER + LexRank + шаблон
-    PRO,      // Default + QVikhr literary summary
-}
-
-/**
- * Сущность, найденная NER. В Sprint 1 пустая (NER нет), заполнится в Sprint 2.
+ * Сущность, извлечённая NER.
  */
 data class NerEntity(
     val type: String,    // "PER" | "ORG" | "LOC"
@@ -26,8 +18,6 @@ data class NerEntity(
  * Полный результат саммаризации.
  */
 data class SummaryResult(
-    /** Какой tier дал результат. */
-    val tier: SummaryTier,
     /** Дата генерации. */
     val generatedAtMs: Long,
     /** Время обработки в мс. */
@@ -38,7 +28,7 @@ data class SummaryResult(
     val transcriptChars: Int,
     val sentencesCount: Int,
 
-    // Извлечённые сущности (NER) — пусто в Sprint 1
+    // Извлечённые сущности (NER)
     val persons: List<NerEntity>,
     val organizations: List<NerEntity>,
     val locations: List<NerEntity>,
@@ -58,6 +48,4 @@ data class SummaryResult(
     // Текстовое представление (готовый markdown для отображения)
     val markdown: String,
 
-    // PRO tier addition (заполняется только если tier == PRO)
-    val proSections: Map<String, String>? = null,
 )

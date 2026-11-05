@@ -49,14 +49,8 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Единый ViewModel для экрана интервью. Управляет жизненным циклом записи,
- * запуска ASR и экспортом DOCX. Composable-экран только наблюдает StateFlow'ы.
- *
- * Workflow:
- *   IDLE → RECORDING ↔ PAUSED → STOPPED → PROCESSING → READY → (ExportDocx)
- *
- * Воспроизведения аудио и редактирования сегментов в этой версии нет —
- * только фиксация распознанного и выгрузка протокола.
+ * Координирует запись, импорт, ASR, воспроизведение, историю и экспорт.
+ * Длительные задачи передаёт LongTaskRunner; UI наблюдает StateFlow.
  */
 class InterviewViewModel(app: Application) : AndroidViewModel(app) {
 
@@ -76,7 +70,6 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
         /** Ошибка. */
         ERROR,
     }
-
 
     val recorder: AudioRecorder = AudioRecorder(app)
     val asr: AsrService = AsrService(app)
@@ -143,7 +136,6 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
     /** true пока идёт перезагрузка embedding-модели. UI показывает индикатор. */
     private val _isReloadingEmbedding = MutableStateFlow(false)
     val isReloadingEmbedding: StateFlow<Boolean> = _isReloadingEmbedding.asStateFlow()
-
 
     private val _embeddingDownloadProgress = MutableStateFlow(0f)
     val embeddingDownloadProgress: StateFlow<Float> = _embeddingDownloadProgress.asStateFlow()
@@ -324,7 +316,6 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
                     return@launch
                 }
                 val downloader = ModelDownloader(storage)
-                // Подписываемся на прогресс
                 val totalBytes = missing.sumOf { it.sizeBytes }
                 val progressJob = launch {
                     downloader.bytesDownloaded.collect { bytes ->
@@ -385,9 +376,6 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    // -----------------------------------------------------------------
-    // Импорт аудиофайла из внешнего источника (SAF / file picker)
-    // -----------------------------------------------------------------
 
     /** Идёт импорт аудио (mp3/m4a/wav/...) → WAV 16kHz mono. */
     private val _isImportingAudio = MutableStateFlow(false)
@@ -544,9 +532,7 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
         LongTaskRunner.startImport(ctx, uri)
     }
 
-    // -----------------------------------------------------------------
     // Саммаризация интервью (Default tier: NER + LexRank)
-    // -----------------------------------------------------------------
     // (поля _summaryResult/_isGeneratingSummary/_summaryError/_exportedSummaryUri
     //  объявлены выше — до init {} — чтобы подписки в init их видели)
 
@@ -595,7 +581,6 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
             writeStatus("EXTRACT FAILED: ${e.javaClass.simpleName}: ${e.message}\n${e.stackTraceToString().take(2000)}")
         }
 
-        // Подробная диагностика: что лежит на диске
         val diagBuilder = StringBuilder()
         diagBuilder.append("navecDir=$navecDir exists=${navecDir.isDirectory}\n")
         if (navecDir.isDirectory) {
@@ -681,7 +666,6 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
         val am = ctx.assets
         val children = am.list(assetPath) ?: return
         if (children.isEmpty()) {
-            // Это файл, не директория — копируем его как файл
             destDir.parentFile?.mkdirs()
             am.open(assetPath).use { inp ->
                 destDir.outputStream().use { out -> inp.copyTo(out) }
@@ -694,10 +678,8 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
             val childDest = File(destDir, child)
             val grandChildren = am.list(childAssetPath)
             if (grandChildren != null && grandChildren.isNotEmpty()) {
-                // Поддиректория — рекурсивно
                 copyAssetsDir(childAssetPath, childDest)
             } else {
-                // Файл — копируем
                 am.open(childAssetPath).use { inp ->
                     childDest.outputStream().use { out -> inp.copyTo(out) }
                 }
@@ -724,7 +706,7 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
         LongTaskRunner.startSummary(ctx, statusText) {
             val plainText = transcript.segments.joinToString(" ") { it.text }
             withContext(Dispatchers.Default) {
-                obtainSummaryFacade().summarizeDefault(plainText)
+                obtainSummaryFacade().summarize(plainText)
             }
         }
     }
@@ -827,7 +809,7 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
             Log.w("InterviewVM", "public Downloads write failed, last resort: app-private", e)
         }
 
-        // Last resort: app-private + FileProvider (всегда работает, но невидимо в проводнике).
+        // Last resort: app-private + FileProvider: файл не появляется в общих Downloads.
         return try {
             val out = File(ctx.filesDir, "exports/$fileName")
             out.parentFile?.mkdirs()
@@ -888,10 +870,6 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
     }
 
 
-    // -----------------------------------------------------------------
-    // Запись
-    // -----------------------------------------------------------------
-
     fun startRecording() {
         if (!recorder.hasPermission()) {
             _toast.value = getApplication<Application>().getString(R.string.toast_no_microphone_permission)
@@ -929,9 +907,6 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    // -----------------------------------------------------------------
-    // Распознавание
-    // -----------------------------------------------------------------
 
     fun runRecognition() {
         val wav = _wavFile.value ?: return
@@ -942,7 +917,7 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
         _exportedSummaryUri.value = null
         _exportedDocx.value = null
         // Разветвление по языку: RU идёт в родной пайплайн (GigaAM + diarization),
-        // EN — в Whisper-обёртку (single-speaker в версии 1.0; multi-speaker будет в Шаге 3).
+        // EN — в Whisper с общей диаризацией через AsrService.
         when (_asrLanguage.value) {
             AsrLanguage.RU -> runRussianRecognition(wav)
             AsrLanguage.EN -> runEnglishRecognition(wav)
@@ -1296,9 +1271,6 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
     /** true если хоть какой-то аудио-файл живой и можно играть. */
     fun hasAudio(): Boolean = (_m4aFile.value ?: _wavFile.value) != null
 
-    // -----------------------------------------------------------------
-    // Метаданные / участники
-    // -----------------------------------------------------------------
 
     fun updateMetadata(update: (InterviewMetadata) -> InterviewMetadata) {
         _metadata.value = update(_metadata.value)
@@ -1320,12 +1292,9 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
         return t.segments.map { it.speakerId }.distinct().sorted()
     }
 
-    // -----------------------------------------------------------------
-    // Экспорт DOCX
-    // -----------------------------------------------------------------
 
     /**
-     * Сохранить DOCX + аудио в Downloads/MK-Интервью/.  Возвращает URI для шаринга.
+     * Сохранить DOCX + аудио в Downloads/SlovamiAI/.  Возвращает URI для шаринга.
      * Аудио копируется предпочтительно M4A (если конвертация уже закончилась),
      * иначе fallback на исходный WAV.
      */
@@ -1354,7 +1323,7 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /**
-     * Копирует аудио в Downloads/MK-Интервью/. Имя файла — то же что у DOCX,
+     * Копирует аудио в Downloads/SlovamiAI/. Имя файла — то же что у DOCX,
      * только расширение соответствует исходнику (.m4a / .wav).
      */
     private fun copyAudioToDownloads(audioSrc: File): Uri? {
@@ -1444,8 +1413,6 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    // -----------------------------------------------------------------
-
     fun consumeToast() { _toast.value = null }
 
     /** Показать toast из UI-кода (например после clipboard copy). */
@@ -1479,7 +1446,6 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
             // ModelStorage.isFirstRunComplete() → false → покажет Downloader
             withContext(Dispatchers.Main) {
                 _toast.value = ctx.getString(R.string.toast_models_deleted)
-                // Простейший рестарт — перезапускаем MainActivity через Intent
                 val intent = ctx.packageManager.getLaunchIntentForPackage(ctx.packageName)
                 intent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                 if (intent != null) ctx.startActivity(intent)
@@ -1515,7 +1481,5 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    // =============================
 }
-
 

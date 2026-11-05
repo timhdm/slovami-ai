@@ -121,21 +121,8 @@ import app.slovami.ai.ui.theme.RecordingRed
 import java.util.Locale
 
 /**
- * Главный экран MK-Интервью. Один экран, три фазы:
- *
- *   ┌──────────────────────── TopAppBar ───────────────────────────┐
- *   │  Заголовок     [Шапка] [Участники] [Сброс]                  │
- *   ├───────────────────────────────────────────────────────────────┤
- *   │  StatusCard — крупный индикатор фазы (запись/обработка/готов) │
- *   │  Контролы записи (запись/пауза/стоп → распознать)            │
- *   │  Прогресс ASR (если идёт) + текст «Распознавание сегмента N»  │
- *   ├───────────────────────────────────────────────────────────────┤
- *   │  TranscriptList — таблица сегментов (после распознавания)     │
- *   │     [HH:MM:SS]  [Спикер 1]  Текст с цветовой разметкой       │
- *   │                                                               │
- *   ├───────────────────────────────────────────────────────────────┤
- *   │  Bottom bar (после распознавания): [Сохранить DOCX] [Отправить] │
- *   └───────────────────────────────────────────────────────────────┘
+ * Отображает текущую фазу интервью и передаёт действия пользователя ViewModel.
+ * Начальное состояние отображает HomeDashboard, результат резюме — SummarySheet.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -179,22 +166,19 @@ fun InterviewScreen(
     var showSummarySheet by remember { mutableStateOf(false) }
     val currentSessionId by vm.currentSessionId.collectAsStateWithLifecycle()
 
-    // -- запросы разрешений ----------------------------------------------------
     val recordPermission = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
         if (granted) vm.startRecording() else {
-            // toast через snackbar
         }
     }
 
-    // -- Пикер аудиофайла из внешнего хранилища (SAF) ----------------------------------
     val audioPicker = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument(),
     ) { uri ->
         if (uri != null) {
             // Просим персистентный доступ, чтобы ContentResolver мог открыть URI позже в выжившем
-            // процессе (вся конвертация в viewModelScope может идти несколько минут для длинных файлов).
+            // процессе: конвертация в application-scope может продолжаться после пересоздания UI.
             try {
                 ctx.contentResolver.takePersistableUriPermission(
                     uri,
@@ -205,15 +189,10 @@ fun InterviewScreen(
         }
     }
 
-    // =============================
-    // =============================
-    // Existing Modal Sheets
-    // =============================
     val notifPermission = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { /* не блокируем */ }
 
-    // -- стартовая инициализация ----------------------------------------------
     LaunchedEffect(Unit) {
         vm.preloadAsrModels()
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
@@ -302,11 +281,9 @@ fun InterviewScreen(
                             Icon(Icons.Default.History, contentDescription = stringResource(R.string.action_history))
                         }
                     }
-                    // Кнопка импорта аудиофайла — видна в фазах IDLE/ERROR.
                     if (phase == InterviewViewModel.Phase.ERROR) {
                         IconButton(
                             onClick = {
-                                // SAF пикер для всех аудио MIME-типов
                                 audioPicker.launch(arrayOf("audio/*"))
                             },
                             enabled = !isImportingAudio,
@@ -330,7 +307,6 @@ fun InterviewScreen(
                             Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.action_new_session))
                         }
                     }
-                    // overflow-меню «⋮» — всегда видно, с разными пунктами в зависимости от фазы.
                     Box {
                         IconButton(onClick = { showOverflowMenu = true }) {
                             Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.action_overflow_menu))
@@ -364,7 +340,6 @@ fun InterviewScreen(
                                     onOpenAbout()
                                 },
                             )
-                            // Пункт 1: удалить из истории (только если есть сохранённая сессия)
                             if (currentSessionId != null && phase == InterviewViewModel.Phase.READY) {
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.action_remove_from_history)) },
@@ -388,7 +363,6 @@ fun InterviewScreen(
                                     },
                                 )
                             }
-                            // Пункт 3: О программе — доступ к экрану благодарностей и лицензий
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.action_about)) },
                                 onClick = {
@@ -426,7 +400,6 @@ fun InterviewScreen(
                     showShare = exportedUri != null,
                 )
             } else {
-                // ---- Контролы записи ----
                 RecordControls(
                     phase = phase,
                     onStart = {
@@ -463,7 +436,6 @@ fun InterviewScreen(
                     modifier = Modifier.fillMaxSize(),
                 )
             } else {
-            // ---- Карточка статуса ----
             StatusCard(
                 phase = phase,
                 durationMs = durationMs,
@@ -486,7 +458,6 @@ fun InterviewScreen(
                 }
             }
 
-            // ---- Сообщение об импорте аудио ----
             if (isImportingAudio) {
                 Card(
                     modifier = Modifier
@@ -519,7 +490,6 @@ fun InterviewScreen(
                 }
             }
 
-            // ---- Выбор количества спикеров и embedding-модели (в фазе RECORDED) ----
             if (phase == InterviewViewModel.Phase.RECORDED) {
                 val speakerMode by vm.speakerCountMode.collectAsStateWithLifecycle()
                 val embeddingModel by vm.embeddingModel.collectAsStateWithLifecycle()
@@ -548,7 +518,6 @@ fun InterviewScreen(
                 color = MaterialTheme.colorScheme.outlineVariant,
             )
 
-            // ---- Мини-плеер (виден в фазе READY когда есть аудио) ----
             if (phase == InterviewViewModel.Phase.READY && vm.hasAudio()) {
                 // Лениво загружаем плеер при первом попадании в фазу READY,
                 // чтобы totalMs выставился и slider отображался корректно до первого play.
@@ -568,7 +537,6 @@ fun InterviewScreen(
                 Spacer(Modifier.height(4.dp))
             }
 
-            // ---- Транскрипт ----
             val t = transcript
             if (t == null) {
                 EmptyTranscriptHint(phase = phase, modifier = Modifier
@@ -630,7 +598,6 @@ fun InterviewScreen(
             knownSpeakerIds = vm.knownSpeakerIds(),
             onDismiss = { showParticipantsSheet = false },
             onSave = { newNames ->
-                // переписываем целиком
                 val current = participants.names.keys + newNames.keys
                 for (id in current) {
                     val v = newNames[id].orEmpty()
@@ -642,9 +609,6 @@ fun InterviewScreen(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Status card — крупная карточка-индикатор текущей фазы
-// ---------------------------------------------------------------------------
 
 @Composable
 private fun StatusCard(
@@ -735,14 +699,12 @@ private fun StatusCard(
                 color = cs.onSurfaceVariant,
             )
 
-            // Уровень микрофона
             if (phase == InterviewViewModel.Phase.RECORDING ||
                 phase == InterviewViewModel.Phase.PAUSED) {
                 Spacer(Modifier.height(10.dp))
                 LevelMeter(level = level, paused = phase == InterviewViewModel.Phase.PAUSED)
             }
 
-            // ASR прогресс
             if (phase == InterviewViewModel.Phase.PROCESSING) {
                 Spacer(Modifier.height(10.dp))
                 LinearProgressIndicator(
@@ -797,9 +759,6 @@ private fun LevelMeter(level: Float, paused: Boolean) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Кнопки записи / распознавания
-// ---------------------------------------------------------------------------
 
 @Composable
 private fun RecordControls(
@@ -820,7 +779,6 @@ private fun RecordControls(
         when (phase) {
             InterviewViewModel.Phase.IDLE,
             InterviewViewModel.Phase.ERROR -> {
-                // Премиум CTA: большая brand-blue кнопка Record с иконкой
                 Button(
                     onClick = onStart,
                     modifier = Modifier
@@ -851,7 +809,6 @@ private fun RecordControls(
                 }
             }
             InterviewViewModel.Phase.RECORDING -> {
-                // Пауза — outline-style (secondary)
                 OutlinedButton(
                     onClick = onPause,
                     modifier = Modifier
@@ -863,7 +820,6 @@ private fun RecordControls(
                     Spacer(Modifier.width(6.dp))
                     Text(stringResource(R.string.action_pause), fontWeight = FontWeight.SemiBold)
                 }
-                // Стоп — яркая recording-red кнопка
                 Button(
                     onClick = onStop,
                     modifier = Modifier
@@ -881,7 +837,6 @@ private fun RecordControls(
                 }
             }
             InterviewViewModel.Phase.PAUSED -> {
-                // Продолжить — brand-blue
                 Button(
                     onClick = onResume,
                     modifier = Modifier
@@ -910,7 +865,6 @@ private fun RecordControls(
                 }
             }
             InterviewViewModel.Phase.RECORDED -> {
-                // Process — яркая brand-blue кнопка «Распознать»
                 Button(
                     onClick = onProcess,
                     modifier = Modifier
@@ -968,9 +922,6 @@ private fun RecordControls(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Список сегментов транскрипта
-// ---------------------------------------------------------------------------
 
 @Composable
 private fun TranscriptList(
@@ -1030,7 +981,6 @@ private fun SegmentCard(
     ) {
         Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Цветная полоса-индикатор спикера
                 Box(
                     modifier = Modifier
                         .size(width = 4.dp, height = 24.dp)
@@ -1072,7 +1022,6 @@ private fun SegmentCard(
             Text(
                 text = buildAnnotatedString {
                     for ((idx, w) in seg.words.withIndex()) {
-                        // Цвета для тёмной темы: светлые варианты warning/danger
                         val color = when (w.confidenceLevel) {
                             ConfidenceLevel.LOW    -> Color(0xFFFCA5A5)  // светло-красный для dark theme
                             ConfidenceLevel.MEDIUM -> Color(0xFFFCD34D)  // светло-жёлтый
@@ -1090,9 +1039,6 @@ private fun SegmentCard(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Мини-плеер — всегда полная запись, seek-bar + play/pause
-// ---------------------------------------------------------------------------
 
 @Composable
 private fun MiniPlayer(
@@ -1170,7 +1116,6 @@ private fun formatPlayerTime(ms: Long): String {
     return String.format(Locale.ROOT, "%d:%02d", m, s)
 }
 
-// Палитра для различения спикеров — яркие цвета для тёмной темы
 private val SpeakerPalette = listOf(
     Color(0xFF60A5FA), // яркий синий
     Color(0xFF34D399), // яркий зелёный
@@ -1185,9 +1130,6 @@ private val SpeakerPalette = listOf(
 private fun speakerAccent(id: Int): Color =
     SpeakerPalette[((id % SpeakerPalette.size) + SpeakerPalette.size) % SpeakerPalette.size]
 
-// ---------------------------------------------------------------------------
-// Выбор количества спикеров (1 / 2 / 3 / 4 / Авто)
-// ---------------------------------------------------------------------------
 
 @Composable
 private fun SpeakerCountSelector(
@@ -1286,9 +1228,6 @@ private fun speakerModeLabel(mode: SpeakerCountMode): String = when (mode) {
     SpeakerCountMode.Auto -> stringResource(R.string.speaker_count_auto_label)
 }
 
-// ---------------------------------------------------------------------------
-// Выбор embedding-модели для диаризации (ERes2Net / V2 / CAM++)
-// ---------------------------------------------------------------------------
 
 @Composable
 private fun EmbeddingModelSelector(
@@ -1355,9 +1294,6 @@ private fun EmbeddingModelSelector(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Подсказка пустого состояния с иллюстрацией
-// ---------------------------------------------------------------------------
 
 @Composable
 private fun EmptyTranscriptHint(
@@ -1366,7 +1302,6 @@ private fun EmptyTranscriptHint(
 ) {
     val cs = MaterialTheme.colorScheme
 
-    // Ресурс иллюстрации и текст под каждую фазу
     val (illustrationRes, title, subtitle) = when (phase) {
         InterviewViewModel.Phase.IDLE -> Triple(
             R.drawable.illustration_empty_no_transcripts,
@@ -1436,9 +1371,6 @@ private fun EmptyTranscriptHint(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Bottom bar экспорта
-// ---------------------------------------------------------------------------
 
 @Composable
 private fun ExportBottomBar(
@@ -1458,7 +1390,6 @@ private fun ExportBottomBar(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column {
-            // Кнопка «Резюме» — отдельной строкой сверху. Показывает spinner во время генерации.
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1487,7 +1418,6 @@ private fun ExportBottomBar(
                 }
             }
 
-            // Обычные кнопки экспорта
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1522,9 +1452,6 @@ private fun ExportBottomBar(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Утилиты времени
-// ---------------------------------------------------------------------------
 
 private fun formatDuration(ms: Long): String {
     val totalSec = ms / 1000

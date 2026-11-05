@@ -126,7 +126,6 @@ fun HistoryScreen(
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
         if (loading) {
-            // Premium лоадинг: brand-blue spinner
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -148,7 +147,6 @@ fun HistoryScreen(
                 }
             }
         } else if (summaries.isEmpty()) {
-            // Premium пустое состояние с иллюстрацией
             EmptyHistoryHint(modifier = Modifier
                 .fillMaxSize()
                 .padding(padding))
@@ -185,7 +183,6 @@ fun HistoryScreen(
                         val id = s.id
                         pendingDelete = null
                         loading = true
-                        // Удаляем синхронно — операция быстрая
                         SessionStore.delete(ctx, id)
                         refreshTick++   // триггерим LaunchedEffect для перезагрузки
                     },
@@ -223,7 +220,6 @@ private fun SessionCard(
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Иконка слева — brand-coloured 48dp с скруглением
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -243,7 +239,6 @@ private fun SessionCard(
                 )
             }
             Spacer(Modifier.width(14.dp))
-            // Содержимое
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = summary.title.ifBlank { stringResource(R.string.history_session_no_title) },
@@ -301,7 +296,6 @@ private fun SessionCard(
                     }
                 }
             }
-            // Кнопка удаления
             IconButton(onClick = onDelete) {
                 Icon(
                     Icons.Default.Delete,

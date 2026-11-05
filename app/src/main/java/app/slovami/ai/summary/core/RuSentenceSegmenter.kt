@@ -18,7 +18,6 @@ package app.slovami.ai.summary.core
  *
  * Ожидаемая точность на русских интервью-стенограммах: ~95% по сравнению с razdel.
  *
- * Производительность: O(n), один проход по тексту, ~50 ms на 100 KB текста.
  */
 object RuSentenceSegmenter {
 
