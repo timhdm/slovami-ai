@@ -59,6 +59,13 @@ DOWNLOADER_PROGRESS.md
 *_internal/
 .private/
 
+# === Local workspace metadata ===
+AGENTS.md
+AGENTS.override.md
+.codex/
+.agents/
+/docs/CODE_COMMENTS.md
+
 # === Test recordings, exports ===
 recordings/
 exports/
