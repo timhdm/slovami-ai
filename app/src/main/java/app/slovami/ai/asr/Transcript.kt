@@ -41,8 +41,8 @@ data class TranscriptSegment(
  * @param text Сам текст слова.
  * @param startMs Время начала слова от старта записи (для подсветки).
  * @param endMs Время конца слова.
- * @param confidence Уверенность распознавания [0..1]. Для CTC-моделей это
- *                   среднее softmax-значение по фреймам слова.
+ * @param confidence Уверенность распознавания [0..1]. В текущем CTC-пайплайне это
+ *                   эвристическая оценка, не калиброванная вероятность.
  */
 data class TranscriptWord(
     val text: String,

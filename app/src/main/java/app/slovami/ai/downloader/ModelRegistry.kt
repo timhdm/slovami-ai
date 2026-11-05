@@ -1,37 +1,8 @@
 package app.slovami.ai.downloader
 
 /**
- * Реестр моделей которые приложение умеет скачивать.
- *
- * Каждая модель имеет:
- *  - id            : ключ для хранения в filesDir и для маппинга в коде
- *  - filename      : имя файла на диске (соответствует имени из исходного релиза)
- *  - sizeBytes     : ожидаемый размер (для прогресс-бара до начала загрузки)
- *  - sha256        : ожидаемый SHA-256 хеш — проверяется после скачивания
- *  - urlSuffix     : суффикс URL внутри release tag (полный URL = BASE_URL + tag + "/" + urlSuffix)
- *  - required      : true → скачивается на старте (без неё приложение не работает)
- *  - tier          : группа: REQUIRED, DEFAULT_EMBEDDING, OPTIONAL_EMBEDDING
- *
- * Хостинг моделей: Hugging Face.
- * URL pattern: https://huggingface.co/TimHdm/slovami-ai-models/resolve/main/{FILE}
- *
- * Почему Hugging Face, а не GitHub Releases:
- *  - Нативная поддержка файлов >100 МБ без git-lfs ограничений
- *  - Общепринятый хостинг для ML моделей (лучше SEO/discoverability)
- *  - Быстрый CDN, включая РФ
- *
- * Внимание: значения SHA-256 — placeholder'ы! Их нужно посчитать ПОСЛЕ того как модели
- * залиты в GitHub Release, и подставить сюда. Скрипт для подсчёта прилагается:
- * tools/compute_model_hashes.py
- *
- * Поведение при first-run:
- *   1. Если все REQUIRED модели скачаны и sha256 совпадает → запуск приложения штатно
- *   2. Иначе → onboarding → загрузка REQUIRED + DEFAULT_EMBEDDING (~332 MB)
- *   3. OPTIONAL_EMBEDDING пользователь может скачать вручную из Settings (TODO)
- *
- * Резервная логика:
- *   - Если loadFromAssets() выдаёт модель — приложение работает с ней (для разработки/F-Droid)
- *   - В production builds модели всегда скачиваются
+ * Каталог файлов Hugging Face с ожидаемыми размерами и SHA-256.
+ * Проверка размещённых моделей и создание полного манифеста: tools/mirror-models.py.
  */
 object ModelRegistry {
 
@@ -55,14 +26,6 @@ object ModelRegistry {
         get() = "https://huggingface.co/$HF_REPO/resolve/$MODELS_REVISION/"
 
     /**
-     * URL для манифеста (JSON с актуальными SHA-256 всех моделей).
-     * Если задан, downloader сначала качает manifest и сверяет с ним хеши.
-     * Если нет — использует hardcoded значения из этого файла.
-     */
-    val MANIFEST_URL: String
-        get() = "${BASE_URL}manifest.json"
-
-    /**
      * Группа модели — определяет когда скачивается.
      */
     enum class Tier {
@@ -74,8 +37,6 @@ object ModelRegistry {
         OPTIONAL_EMBEDDING,
         /** Английская ASR модель — опциональная, качается при выборе EN */
         OPTIONAL_EN_ASR,
-        /** QVikhr-2.5-1.5B модель для Pro Personal саммаризации */
-        PRO_PERSONAL_AI,
     }
 
     /**
@@ -99,12 +60,8 @@ object ModelRegistry {
          * Использует прямой слэш (для URL), а не File.separator.
          */
         val urlSuffix: String get() = if (subdir != null) "$subdir/$filename" else filename
-        val required: Boolean get() = tier == Tier.REQUIRED
     }
 
-    // ────────────────────────────────────────────────────────────────────
-    // Каталог моделей
-    // ────────────────────────────────────────────────────────────────────
 
     /** ASR — GigaAM-v3 e2e_ctc int8. Главная модель распознавания. */
     val ASR_MAIN = Model(
@@ -142,12 +99,7 @@ object ModelRegistry {
         tier = Tier.OPTIONAL_EMBEDDING,
     )
 
-    // ────────────────────────────────────────────────────────────────────
-    // Английский ASR — Whisper base.en через sherpa-onnx.
-    // Скачивается опционально когда пользователь явно выбирает EN в настройках.
-    // Суммарный размер этой группы: ~152 MB вместе с токенами.
-    // Лежит на HF в подпапке en/.
-    // ────────────────────────────────────────────────────────────────────
+    // Whisper хранится в en/ и входит в first-run набор при выборе EN.
 
     /** Английский ASR encoder (int8). */
     val ASR_EN_ENCODER = Model(
@@ -179,27 +131,7 @@ object ModelRegistry {
         subdir = "en",
     )
 
-    // ────────────────────────────────────────────────────────────────────
-    // Pro Personal AI — QVikhr-2.5-1.5B для локальной саммаризации.
-    // Лежит в подпапке qvikhr/. Размер: ~1.5 GB квантизация Q5_K_M.
-    // Скачивается опционально по запросу пользователя.
-    // ────────────────────────────────────────────────────────────────────
-
-    /** QVikhr-2.5-1.5B модель для Pro Personal саммаризации. */
-    val QVIKHR_MODEL = Model(
-        id = "qvikhr_1_5b",
-        filename = "QVikhr-2.5-1.5B-Instruct-r.Q5_K_M.gguf",
-        sizeBytes = 1_610_612_736L,  // ~1.5 GB
-        sha256 = "0000000000000000000000000000000000000000000000000000000000000000", // TODO: посчитать после заливки
-        tier = Tier.PRO_PERSONAL_AI,
-        subdir = "qvikhr",
-    )
-
-    // ─────────────────────────────────────────────────────────────────
-    // Summarization Default tier: Slovnet NER + Navec embeddings.
-    // Порядоковая саммаризация на устройстве без LLM. Обе лежат в summary/ на HF.
-    // Общий размер этой группы: ~28 MB.
-    // ─────────────────────────────────────────────────────────────────
+    // Navec и Slovnet загружаются вместе из summary/; одного архива недостаточно для NER.
 
     /** Navec quantized embeddings (250K Russian words, 300d, PQ-100). */
     val NAVEC_NEWS = Model(
@@ -224,15 +156,8 @@ object ModelRegistry {
     /** Модели summarization Default tier (обе нужны вместе). */
     val SUMMARY_BUNDLE: List<Model> = listOf(NAVEC_NEWS, SLOVNET_NER)
 
-    /** Сумма байт для summary bundle. */
-    val SUMMARY_TOTAL_BYTES: Long = SUMMARY_BUNDLE.sumOf { it.sizeBytes }
-
-
     /** Все английские модели вместе — полный комплект для EN распознавания. */
     val EN_ASR_BUNDLE: List<Model> = listOf(ASR_EN_ENCODER, ASR_EN_DECODER, ASR_EN_TOKENS)
-
-    /** Сумма байт для EN комплекта — для UI прогресса. */
-    val EN_ASR_TOTAL_BYTES: Long = EN_ASR_BUNDLE.sumOf { it.sizeBytes }
 
     /** Все модели в реестре. */
     val ALL: List<Model> = listOf(
@@ -243,7 +168,6 @@ object ModelRegistry {
         ASR_EN_ENCODER,
         ASR_EN_DECODER,
         ASR_EN_TOKENS,
-        QVIKHR_MODEL,
         NAVEC_NEWS,
         SLOVNET_NER,
     )
@@ -253,9 +177,6 @@ object ModelRegistry {
     val FIRST_RUN_REQUIRED: List<Model> = ALL.filter {
         it.tier == Tier.REQUIRED || it.tier == Tier.DEFAULT_EMBEDDING
     }
-
-    /** Сумма байт для first-run загрузки (RU сценарий). */
-    val FIRST_RUN_TOTAL_BYTES: Long = FIRST_RUN_REQUIRED.sumOf { it.sizeBytes }
 
     /**
      * Модели для first-run скачивания с учётом выбранного языка:
@@ -273,6 +194,4 @@ object ModelRegistry {
     fun firstRunTotalBytesFor(language: String?): Long =
         firstRunModelsFor(language).sumOf { it.sizeBytes }
 
-    /** Найти модель по id. */
-    fun byId(id: String): Model? = ALL.find { it.id == id }
 }

@@ -1,5 +1,5 @@
 # =============================================================
-# ProtocolVoice — .gitignore
+# Slovami AI — .gitignore
 # =============================================================
 # IMPORTANT: эти правила защищают от случайного коммита
 # огромных моделей (305 МБ ASR + 200+ МБ embeddings)
@@ -25,7 +25,7 @@ local.properties
 
 # === Большие модели ONNX ===
 # Эти файлы должны лежать на Hugging Face, НЕ в коде!
-# Публикация моделей — отдельный процесс (huggingface.co/protocolvoice/asr-models).
+# Публикация моделей — отдельный процесс (huggingface.co/TimHdm/slovami-ai-models).
 app/src/main/assets/asr/gigaam_v3_e2e_ctc_int8.onnx
 app/src/main/assets/asr/speaker_embedding.onnx
 app/src/main/assets/asr/speaker_embedding_camplus.onnx

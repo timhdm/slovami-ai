@@ -15,29 +15,8 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 /**
- * Сборка DOCX-протокола интервью без внешних библиотек (Apache POI весит >15 МБ
- * и тащит за собой XML-стек который ломает minSdk 26 и сильно раздувает APK).
- *
- * DOCX это просто ZIP с фиксированной структурой OOXML:
- *
- *   /[Content_Types].xml          — типы файлов внутри пакета
- *   /_rels/.rels                  — relationship: «document.xml — главный»
- *   /word/document.xml            — сам текст протокола
- *   /word/_rels/document.xml.rels — пустые relationships документа
- *   /word/styles.xml              — стили (Normal, Heading1, TableGrid…)
- *
- * Этого достаточно для Word/LibreOffice/WPS — все они переваривают файл без
- * жалоб. Шрифт в стилях задан Times New Roman 11/14 — стандартный документный
- * формат, привычный для официальных протоколов и аудиторских отчётов.
- *
- * Структура выходного протокола:
- *   1. Заголовок «ПРОТОКОЛ ИНТЕРВЬЮ»
- *   2. Шапка: тема, место, дата, аудитор
- *   3. Список участников
- *   4. Основная часть — таблица «Время | Спикер | Реплика»,
- *      слова с low-confidence окрашены красным, с medium — оранжевым.
- *   5. Заметки аудитора (если заполнены)
- *   6. Блок подписей
+ * Создаёт минимальный OOXML ZIP: document.xml, styles.xml, relationships и content types.
+ * Сохраняет timestamps, участников и цветовую разметку уверенности слов.
  */
 class DocxBuilder(
     private val transcript: InterviewTranscript,
@@ -63,9 +42,7 @@ class DocxBuilder(
         }
     }
 
-    // ===================================================================
     // document.xml — главное содержимое
-    // ===================================================================
 
     private fun documentXml(): String = buildString {
         append("""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>""")
@@ -300,9 +277,7 @@ class DocxBuilder(
         appendParagraph(text = "Дата подписания: «____» ________________ 20____ г.")
     }
 
-    // ===================================================================
     // Низкоуровневые билдеры абзацев и ячеек
-    // ===================================================================
 
     private fun StringBuilder.appendParagraph(
         text: String,
@@ -375,9 +350,7 @@ class DocxBuilder(
     private fun tableBorder(side: String, type: String, sizeEighthPt: Int): String =
         """<w:$side w:val="$type" w:sz="$sizeEighthPt" w:space="0" w:color="666666"/>"""
 
-    // ===================================================================
     // styles.xml — Times New Roman, заголовки, таблицы
-    // ===================================================================
 
     private fun stylesXml(): String = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
@@ -446,9 +419,7 @@ class DocxBuilder(
   </w:style>
 </w:styles>"""
 
-    // ===================================================================
     // Утилиты
-    // ===================================================================
 
     private fun ZipOutputStream.putEntry(name: String, content: String) {
         putNextEntry(ZipEntry(name))
@@ -524,9 +495,7 @@ class DocxBuilder(
         return out
     }
 
-    // ===================================================================
     // Статические артефакты OOXML — одинаковые для любого DOCX
-    // ===================================================================
 
     companion object {
         private const val CONTENT_TYPES_XML =

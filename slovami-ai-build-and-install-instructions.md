@@ -42,12 +42,14 @@ $env:DEBUG_KEY_PASSWORD = 'ПАРОЛЬ-КЛЮЧА'
 cd 'E:\Projects\AI\slovami-ai\slovami-ai'
 git status --short
 git fetch origin
-git switch feat/electric-violet-downloader-v2
+git switch '<рабочая-ветка>'
 git pull --ff-only
-& '.\scripts\install-latest-debug.ps1' -Branch 'feat/electric-violet-downloader-v2'
+& '.\scripts\install-latest-debug.ps1' -Branch '<рабочая-ветка>'
 ```
 
-Скрипт собирает **локальную текущую ветку**, проверяет чистоту рабочего дерева, скачивает и проверяет AAR, проверяет наличие ключа подписи, выполняет `gradlew.bat assembleDebug` и `adb install -r`. Он не переключает ветки, не очищает данные приложения и не обращается к GitHub Actions.
+Заменить `<рабочая-ветка>` на имя своей ветки. Не копировать угловые скобки как часть команды.
+
+Скрипт собирает **локальную текущую ветку**, проверяет чистоту рабочего дерева, скачивает и проверяет AAR, проверяет наличие ключа подписи, выполняет `./gradlew assembleDebug` через Git Bash и `adb install -r`. Он не переключает ветки, не очищает данные приложения и не обращается к GitHub Actions.
 
 Дополнительные параметры: `-RunTests` запускает также `testDebugUnitTest`; `-BuildOnly` создаёт APK без установки.
 

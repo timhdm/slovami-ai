@@ -26,18 +26,8 @@ import java.io.IOException
 import java.io.RandomAccessFile
 
 /**
- * Запись звука с микрофона в WAV-файл (16 kHz, mono, 16-bit PCM).
- *
- * Этот формат — точно то что нужно sherpa-onnx для GigaAM-v3.
- * Запись идёт в файл напрямую (не держим в памяти): для часового интервью
- * получится ~115 МБ WAV — слишком много чтобы держать в RAM, но для FS норма.
- *
- * Жизненный цикл:
- *   start(outputFile) → запись → pause()/resume() → stop()
- *
- * Состояние через StateFlow [state]: IDLE / RECORDING / PAUSED / STOPPED.
- * Также публикует уровень входного сигнала [level] (RMS в диапазоне 0..1)
- * для визуализации индикатором громкости в UI.
+ * Пишет микрофонный PCM16 напрямую в WAV 16 kHz mono.
+ * Заголовок WAV завершается при остановке записи.
  */
 class AudioRecorder(private val ctx: Context) {
 

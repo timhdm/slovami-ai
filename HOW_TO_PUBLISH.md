@@ -2,6 +2,8 @@
 
 Repository: https://github.com/timhdm/slovami-ai
 
+Developer and maintainer: Timur M. Omarov ([TimHdm](https://github.com/TimHdm)).
+
 Slovami AI is an Android application built with Kotlin, Jetpack Compose and Gradle.
 The GitHub repository already exists. Do not initialize a second Git repository
 or push directly to main to publish changes.
@@ -36,8 +38,10 @@ The workflow `.github/workflows/android.yml` builds a signed debug APK;
 pull requests also run unit tests. Manual workflow_dispatch can request tests.
 The uploaded artifact is named `slovami-ai-debug-apk`.
 
-For a local ADB installation of a workflow artifact, use
-`scripts/install-latest-debug.ps1`. By default it selects the main branch.
+For daily local builds and ADB installation, use `scripts/install-latest-debug.ps1`
+with the required `-Branch` argument matching the current local branch. It builds
+locally, requires a clean working tree and does not fetch workflow artifacts or
+switch branches. See [the local workflow](slovami-ai-build-and-install-instructions.md).
 Existing installations can be updated only with a matching signing key.
 
 ## Releases

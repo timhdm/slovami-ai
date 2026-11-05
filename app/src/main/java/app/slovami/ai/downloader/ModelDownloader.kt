@@ -17,26 +17,9 @@ import java.net.URL
 import kotlin.coroutines.coroutineContext
 
 /**
- * Скачивание моделей по HTTP с поддержкой resume.
- *
- * Поток скачивания одной модели:
- *   1. Проверяем что файл уже не скачан полностью + sha256 совпадает → return SUCCESS
- *   2. Если есть .partial с меньшим размером — отправляем Range: bytes=N- запрос
- *   3. Иначе — обычный GET с Content-Length
- *   4. Стримим в .partial/ кусками 64 KB, обновляем прогресс
- *   5. Проверяем размер на матч с ожидаемым
- *   6. Считаем sha256 → если matches → переименовываем в финальный путь
- *   7. Если sha256 не совпадает → удаляем и retry (макс 3 раза)
- *
- * Все методы suspend — поддерживают cancellation. При отмене .partial остаётся
- * на диске, при следующем запуске продолжит с того же места.
- *
- * Прогресс через StateFlow:
- *   - currentModelId : id текущей качаемой модели (null = idle)
- *   - bytesDownloaded: всего скачано байт (по всем моделям в текущей сессии)
- *   - bytesTotal     : целевой объём
- *   - speedBps       : скорость скачивания, байт в секунду (за последние 2 сек)
- *   - errorMessage   : описание последней ошибки или null
+ * Продолжает HTTP-загрузки через Range и .partial-файлы.
+ * Новые загрузки проверяются по размеру и SHA-256 перед переименованием.
+ * Отмена сохраняет частичный файл; уже готовые файлы отбираются по размеру.
  */
 class ModelDownloader(
     private val storage: ModelStorage,
@@ -79,9 +62,6 @@ class ModelDownloader(
     private val _status = MutableStateFlow(Status.IDLE)
     val status: StateFlow<Status> = _status.asStateFlow()
 
-    // ────────────────────────────────────────────────────────────────────
-    // Public API
-    // ────────────────────────────────────────────────────────────────────
 
     /**
      * Скачать набор моделей по списку. Если модель уже на диске и валидна —
@@ -296,7 +276,7 @@ class ModelDownloader(
             return false
         }
 
-        // SHA-256 (медленно, ~2-3 сек на 300 MB модель)
+        // SHA-256 проверяется до переноса файла в готовые модели.
         if (!model.sha256.startsWith("PLACEHOLDER")) {
             val actual = storage.sha256(partial)
             if (actual != model.sha256) {

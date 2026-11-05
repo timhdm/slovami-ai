@@ -105,7 +105,6 @@ dependencies {
 
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.core:core-splashscreen:1.0.1")
-    implementation("androidx.documentfile:documentfile:1.0.1")
 
     // AppCompat — нужен только для AppCompatDelegate.setApplicationLocales()
     // (переключение языка интерфейса в runtime). Самим экранам не нужен — всё на Compose.
@@ -116,11 +115,11 @@ dependencies {
 
     // Sherpa-ONNX — speech recognition + diarization (offline).
     // Static-link AAR содержит и sherpa-onnx, и onnxruntime внутри (36 МБ).
-    // Скачан с https://github.com/k2-fsa/sherpa-onnx/releases/tag/v1.13.0
+    // Версия 1.13.1; URL загрузки и SHA-256 — в scripts/install-latest-debug.ps1
+    // и .github/workflows/android.yml. AAR скачивается отдельно и не хранится в Git.
     implementation(files("libs/sherpa-onnx.aar"))
 
     debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     // Unit tests (для диагностики SlovnetNer Kotlin port против Python ground truth)
     testImplementation("junit:junit:4.13.2")

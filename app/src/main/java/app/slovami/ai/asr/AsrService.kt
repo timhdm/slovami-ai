@@ -28,29 +28,8 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 /**
- * Главный сервис распознавания интервью.
- *
- * Архитектура (полный пайплайн):
- *   1. WAV-файл (16kHz, mono, PCM16) → читаем как FloatArray
- *   2. Speaker Diarization (pyannote-segmentation + 3D-Speaker embedding)
- *      → разбивает аудио на сегменты [start, end, speakerId]
- *   3. Для каждого сегмента — режем FloatArray и кормим в OfflineRecognizer
- *      (GigaAM-v3 e2e_ctc, со встроенной пунктуацией и нормализацией)
- *   4. Из результата извлекаем слова с timestamps и confidence
- *   5. Объединяем в [InterviewTranscript]
- *
- * Все 5 ONNX-моделей лежат в `app/src/main/assets/asr/`:
- *   - gigaam_v3_e2e_ctc_int8.onnx       (305 МБ, ASR + auto-punct)
- *   - gigaam_v3_e2e_ctc_tokens.txt      (словарь BPE токенов)
- *   - speaker_embedding.onnx            (3D-Speaker, 111 МБ)
- *   - segmentation.onnx                 (pyannote-segmentation-3 int8, 1.5 МБ)
- *   - silero_vad.onnx                   (опционально, для VAD pre-processing)
- *
- * Использование:
- *   val svc = AsrService(ctx)
- *   svc.initialize()         // долго, ~5-10 сек, грузит модели
- *   val transcript = svc.process(wavFile)
- *   svc.release()
+ * Русский ASR и диаризация для WAV 16 kHz, mono, PCM16.
+ * Пути скачанных и встроенных моделей объединяет AssetExtractor.
  */
 class AsrService(private val ctx: Context) {
 
@@ -397,10 +376,8 @@ class AsrService(private val ctx: Context) {
     /**
      * Применяет numClusters для текущего прогона — используется только в diarizeOnly() для EN-пайплайна.
      *
-     * FIX 12.05.2026 (третий подход): оба предыдущих варианта (setConfig() и пересоздание
-     * объекта внутри process()) падают в native-коде sherpa-onnx 1.13.0. Решение —
-     * пересоздавать диаризатор через полный initialize() (в process() вызывается напрямую).
-     * При EN-пайплайне используем эту версию, которая вызывает initialize() через suspend.
+     * Смена числа кластеров проходит через initialize(): прямой setConfig()
+     * ранее приводил к сбоям native-кода. Обход не убирать без проверки на устройстве.
      */
     private suspend fun applyClusteringConfig(diar: OfflineSpeakerDiarization, mode: SpeakerCountMode): OfflineSpeakerDiarization {
         val numClusters = when (mode) {
@@ -590,7 +567,7 @@ class AsrService(private val ctx: Context) {
      * клиент получает сегменты (спикер + временные рамки) и прогоняет их
      * через внешний ASR (Whisper).
      *
-     * Диаризация language-agnostic — работает одинаково хорошо для любого языка.
+     * Диаризация не использует текст ASR; качество зависит от записи и embedding-модели.
      *
      * @return list of (start_seconds, end_seconds, speaker_id), или null в случае ошибки
      */

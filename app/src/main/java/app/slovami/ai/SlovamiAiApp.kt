@@ -7,25 +7,8 @@ import androidx.core.os.LocaleListCompat
 import java.util.Locale
 
 /**
- * Application class — точка инициализации до первого Activity.
- *
- * Главные задачи:
- *   1. На СВЕЖЕЙ установке (нет asr_language в prefs) — выбрать язык по умолчанию
- *      исходя из системной локали:
- *        - системный язык "ru" → asr_language = "RU" (Whisper не нужен, качаем GigaAM)
- *        - всё остальное (en, fr, de, ...) → asr_language = "EN" (универсальный, качаем Whisper)
- *      Это значит: русскому пользователю — русский UI и русская модель ASR
- *      англоязычному (или любому другому) — английский UI и Whisper.
- *      Пользователь всё равно может переключить через 🌐 на Downloader экране.
- *
- *   2. Применить сохранённый язык интерфейса до создания MainActivity
- *      (через AppCompatDelegate.setApplicationLocales). Без этого свежеустановленное
- *      приложение могло бы показать смесь системного и приложенческого языка.
- *
- * Persistence:
- *   - asr_language хранится в SharedPreferences "interview_prefs" (тот же что в InterviewViewModel)
- *   - UI locale хранится либо в SharedPreferences AppCompat (Android <13)
- *     либо в системе через PerAppLanguagesManager (Android 13+)
+ * Применяет сохранённую локаль до создания Activity. При первом запуске
+ * выбирает RU для русской системной локали, иначе EN.
  */
 class SlovamiAiApp : Application() {
     override fun onCreate() {
@@ -57,14 +40,7 @@ class SlovamiAiApp : Application() {
         AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(localeTag))
     }
 
-    /**
-     * Определяет язык по умолчанию исходя из системной локали Android.
-     * Только русский → RU, всё остальное → EN.
-     *
-     * Логика: GigaAM умеет только русский, Whisper умеет почти всё что нужно
-     * не-русскоговорящим. Если в Android системе выставлен русский — пользователь
-     * с большой вероятностью русскоговорящий. Иначе — даём Whisper.
-     */
+    /** Начальное значение для системной локали: ru → RU, остальные → EN. */
     private fun detectDefaultAsrLanguage(): String {
         val systemLocale = resources.configuration.locales.get(0) ?: Locale.getDefault()
         val lang = systemLocale.language.lowercase()

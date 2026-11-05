@@ -89,7 +89,7 @@ def main() -> None:
     if args.upload:
         api.upload_file(path_or_fileobj=str(manifest_file), path_in_repo="manifest.json",
                         repo_id=args.target, repo_type="model")
-        # Verify published files are resolvable; the app will still be switched only in a later PR.
+        # Verify published paths exist; changing the app registry is a separate operation.
         published = {s.path for s in api.list_repo_tree(args.target, recursive=True)}
         missing = set(MODELS) | {"manifest.json"}
         missing -= published

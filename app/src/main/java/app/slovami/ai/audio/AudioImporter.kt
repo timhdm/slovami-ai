@@ -16,24 +16,8 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 /**
- * Импорт аудиофайла любого формата (mp3/m4a/wav/ogg/aac/flac/3gp/amr — всё что
- * Android MediaCodec умеет нативно) и конвертация в 16kHz / mono / PCM16 WAV —
- * именно такой формат ожидает GigaAM-v3 ASR.
- *
- * Pipeline (streaming, без накопления PCM в RAM):
- *   1. [MediaExtractor] открывает URI и парсит контейнер
- *   2. Находим audio track, запоминаем source sampleRate и channels
- *   3. [MediaCodec] декодирует в PCM16 — каждый chunk сразу обрабатываем:
- *       - downmix N-каналов в моно (если нужно)
- *       - ресемпл до 16kHz (линейный, состояние между chunks)
- *       - пишем в [BufferedOutputStream] -> WAV-файл
- *   4. В конце патчим RIFF/data размеры в WAV-заголовке (placeholder).
- *
- * Это даёт O(N) производительность вместо O(N²) у наивной аккумуляции.
- * На WhatsApp m4a (~10 МБ, 30 мин) ускорение ~10-20x.
- *
- * Ресемплинг — простой линейный (без windowed sinc / libsamplerate). Для ASR этого
- * достаточно — модель сама делает feature extraction и устойчива к небольшим артефактам.
+ * Потоково декодирует аудио в WAV 16 kHz, mono, PCM16, не накапливая весь PCM в RAM.
+ * Ресемплинг сохраняет состояние между блоками; размеры RIFF/data дописываются в конце.
  */
 object AudioImporter {
 

@@ -45,14 +45,7 @@ import androidx.compose.ui.window.DialogProperties
 import app.slovami.ai.summary.default_tier.SummaryResult
 
 /**
- * Полноэкранный Dialog с результатами Default tier саммаризации.
- *
- * Состояния:
- *  - isGenerating == true → spinner и текст "Собираем резюме…"
- *  - error != null → красная карточка с ошибкой + кнопка "Попробовать ещё"
- *  - result != null → разделы: статистика, имена, организации, локации,
- *                      топ-цитаты, риски, цифры + sticky bottom bar с действиями
- *  - все три null/false → пустое состояние
+ * Отображает прогресс, ошибку или результат извлечения фактов из интервью.
  */
 @Composable
 fun SummarySheet(
@@ -80,10 +73,8 @@ fun SummarySheet(
                 .background(cs.background),
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                // Заголовок (фиксированный сверху)
                 Surface_TopBar(onDismiss)
 
-                // Содержимое — прокрутка (занимает всё доступное место кроме bottom bar)
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -100,7 +91,6 @@ fun SummarySheet(
                     Spacer(Modifier.height(40.dp))
                 }
 
-                // Sticky bottom bar — показываем только если есть результат
                 if (result != null && !isGenerating && error == null) {
                     ActionBar(
                         onCopy = onCopy,
@@ -162,12 +152,10 @@ private fun ActionBar(
                 ),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            // Первый ряд — действия с результатом
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                // Копировать
                 OutlinedButton(
                     onClick = onCopy,
                     modifier = Modifier.weight(1f).height(48.dp),
@@ -180,7 +168,6 @@ private fun ActionBar(
                     Spacer(Modifier.width(6.dp))
                     Text("Копировать", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 }
-                // Поделиться
                 OutlinedButton(
                     onClick = onShare,
                     modifier = Modifier.weight(1f).height(48.dp),
@@ -193,7 +180,6 @@ private fun ActionBar(
                     Spacer(Modifier.width(6.dp))
                     Text("Поделиться", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 }
-                // Сохранить .txt
                 Button(
                     onClick = onSaveTxt,
                     modifier = Modifier.weight(1f).height(48.dp),
@@ -207,7 +193,6 @@ private fun ActionBar(
                     Text("Сохранить", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
-            // Второй ряд — перегенерировать
             TextButton(
                 onClick = onRegenerate,
                 modifier = Modifier.fillMaxWidth(),
@@ -274,7 +259,6 @@ private fun EmptyState() {
 private fun ResultContent(summary: SummaryResult) {
     val cs = MaterialTheme.colorScheme
 
-    // 1. Статистика
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text("Статистика", fontWeight = FontWeight.Bold, fontSize = 14.sp)
@@ -303,7 +287,6 @@ private fun ResultContent(summary: SummaryResult) {
     }
     Spacer(Modifier.height(12.dp))
 
-    // 2. Persons
     if (summary.persons.isNotEmpty()) {
         SectionHeader("👥 Главные действующие лица")
         for (p in summary.persons.take(10)) {
@@ -312,7 +295,6 @@ private fun ResultContent(summary: SummaryResult) {
         Spacer(Modifier.height(12.dp))
     }
 
-    // 3. Organizations
     if (summary.organizations.isNotEmpty()) {
         SectionHeader("🏢 Организации")
         for (o in summary.organizations.take(8)) {
@@ -321,7 +303,6 @@ private fun ResultContent(summary: SummaryResult) {
         Spacer(Modifier.height(12.dp))
     }
 
-    // 4. Locations
     if (summary.locations.isNotEmpty()) {
         SectionHeader("📍 Локации")
         for (l in summary.locations.take(8)) {
@@ -330,7 +311,6 @@ private fun ResultContent(summary: SummaryResult) {
         Spacer(Modifier.height(12.dp))
     }
 
-    // 5. Top quotes
     if (summary.topQuotes.isNotEmpty()) {
         SectionHeader("💬 Ключевые цитаты")
         for ((i, q) in summary.topQuotes.withIndex()) {
@@ -349,7 +329,6 @@ private fun ResultContent(summary: SummaryResult) {
         Spacer(Modifier.height(12.dp))
     }
 
-    // 6. Risks
     if (summary.risks.isNotEmpty()) {
         SectionHeader("⚠️ Риски и проблемы")
         for (r in summary.risks) {
@@ -364,7 +343,6 @@ private fun ResultContent(summary: SummaryResult) {
         Spacer(Modifier.height(12.dp))
     }
 
-    // 7. Numbers
     if (summary.numbers.isNotEmpty()) {
         SectionHeader("🔢 Цифры и данные")
         for (n in summary.numbers.take(20)) {

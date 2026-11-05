@@ -9,16 +9,8 @@ import app.slovami.ai.summary.lexrank.topKInOrder
 import app.slovami.ai.summary.ner.NerProvider
 
 /**
- * Сервис генерации резюме по умолчанию (Default tier).
- *
- * Алгоритм:
- *  1. Сегментация на предложения (RuSentenceSegmenter)
- *  2. NER (через [NerProvider]; в Sprint 1 = NoOpNerProvider, в Sprint 2 = SlovnetNerProvider)
- *  3. LexRank ранжирование с entity boost (если NER вернул сущности)
- *  4. Извлечение чисел и рисков (regex)
- *  5. Сборка markdown через TemplateBuilder
- *
- * Чистый Kotlin, никаких сторонних зависимостей кроме Android API.
+ * Формирует резюме: NER, LexRank, извлечение чисел/рисков и шаблон.
+ * При недоступности NER fallback сохраняет остальные разделы.
  */
 class DefaultSummaryService(
     private val nerProvider: NerProvider,
@@ -74,7 +66,6 @@ class DefaultSummaryService(
         )
 
         return SummaryResult(
-            tier = SummaryTier.DEFAULT,
             generatedAtMs = System.currentTimeMillis(),
             processingTimeMs = totalMs,
             transcriptWords = transcript.split(Regex("\\s+")).size,

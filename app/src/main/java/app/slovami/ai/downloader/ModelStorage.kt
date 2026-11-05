@@ -6,18 +6,8 @@ import java.io.File
 import java.security.MessageDigest
 
 /**
- * Управление физическими файлами моделей на диске.
- *
- * Структура filesDir/models/:
- *   gigaam_v3_e2e_ctc_int8.onnx
- *   speaker_embedding_camplus.onnx
- *   speaker_embedding.onnx          (опц.)
- *   speaker_embedding_v2.onnx       (опц.)
- *   .partial/                       — частично скачанные файлы (resume support)
- *     gigaam_v3_e2e_ctc_int8.onnx.partial
- *
- * При установленном приложении filesDir = /data/data/app.slovami.ai/files/
- * Этот путь приватный — никто кроме приложения туда не залезет.
+ * Приватное хранилище filesDir/models. Незавершённые загрузки лежат в .partial;
+ * запись становится готовой моделью только после проверки и переноса файла.
  */
 class ModelStorage(private val ctx: Context) {
 

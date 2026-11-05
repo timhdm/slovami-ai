@@ -5,8 +5,6 @@
     <!-- =================================================== -->
     <!-- Основной экран: TopBar, статусы, кнопки записи -->
     <!-- =================================================== -->
-    <string name="title_main">Протокол интервью</string>
-    <string name="title_empty">без темы</string>
 
     <!-- TopBar actions -->
     <string name="action_history">История</string>
@@ -115,11 +113,6 @@
     <!-- =================================================== -->
     <!-- Участники (ParticipantsEditor) -->
     <!-- =================================================== -->
-    <string name="participants_sheet_title">Участники</string>
-    <string name="participants_sheet_subtitle">Привяжите имена к спикерам — они появятся в протоколе.</string>
-    <string name="participants_no_speakers">Спикеры появятся после распознавания.</string>
-    <string name="participants_speaker_label">Спикер %1$d</string>
-    <string name="participants_speaker_default">Спикер %1$d</string>
     <string name="participants_name_hint">ФИО, должность</string>
 
     <!-- =================================================== -->
@@ -192,8 +185,6 @@
     <!-- =================================================== -->
     <!-- Permissions -->
     <!-- =================================================== -->
-    <string name="permission_microphone_rationale">Для записи интервью нужен доступ к микрофону</string>
-    <string name="permission_microphone_denied">Без разрешения на микрофон запись невозможна. Откройте настройки приложения.</string>
 
     <!-- =================================================== -->
     <!-- ASR внутренние статусы (видят пользователя) -->
@@ -221,15 +212,7 @@
     <string name="downloader_checking">Проверяем модели…</string>
     <string name="downloader_welcome_title">Почти готово!</string>
     <string name="downloader_welcome_message">Скачайте модели — специальные файлы, которые помогают приложению распознавать речь и различать голоса. После загрузки приложение сможет работать без интернета.</string>
-    <string name="downloader_size_title">Размер загрузки</string>
-    <string name="downloader_size_value">%1$s — скачивается один раз</string>
     <string name="downloader_start_action">Скачать</string>
-    <string name="downloader_downloading_title">Скачивание…</string>
-    <string name="downloader_speed">%1$s/с</string>
-    <string name="downloader_label_asr">Модель распознавания речи</string>
-    <string name="downloader_label_camplus">Модель разделения спикеров (CAM++)</string>
-    <string name="downloader_label_v1">Модель разделения спикеров (V1)</string>
-    <string name="downloader_label_v2">Модель разделения спикеров (V2)</string>
     <!-- Выход из Downloader без скачивания -->
     <string name="downloader_exit">Выйти</string>
     <string name="downloader_exit_dialog_title">Закрыть приложение?</string>
@@ -238,7 +221,6 @@
     <string name="downloader_exit_dialog_dismiss">Остаться</string>
     <string name="downloader_cancel">Отменить</string>
     <string name="downloader_success_title">Готово!</string>
-    <string name="downloader_success_message">Модели скачаны. Можно начинать работу.</string>
     <string name="downloader_error_title">Ошибка скачивания</string>
     <string name="downloader_error_generic">Не удалось скачать модели. Проверьте подключение к интернету.</string>
     <string name="downloader_retry">Повторить</string>
@@ -264,7 +246,7 @@
     <string name="about_ack_huggingface_desc">Хостинг ML-моделей, использованных в приложении.</string>
     <string name="about_ack_huggingface_url">huggingface.co/TimHdm/slovami-ai-models</string>
     <string name="about_section_license">Лицензия</string>
-    <string name="about_license_text">Приложение распространяется под лицензией Apache 2.0. Исходный код доступен на GitHub.</string>
+    <string name="about_license_text">Разработка и сопровождение: Timur M. Omarov (TimHdm). Приложение распространяется под лицензией Apache 2.0. Исходный код: github.com/TimHdm/slovami-ai.</string>
     <string name="about_back">Назад</string>
 
     <!-- Language selection (within About screen) -->

@@ -1,10 +1,10 @@
 # Contributing to Slovami AI
 
-Thanks for your interest! Slovami AI is built by professionals who needed an offline voice transcription tool that respects privacy. Contributions are welcome.
+Slovami AI is developed and maintained by Timur M. Omarov ([TimHdm](https://github.com/TimHdm)). Contributions are welcome.
 
 ## Ways to contribute
 
-- **Bug reports** — open an [Issue](../../issues) with steps to reproduce
+- **Bug reports** — open an [Issue](https://github.com/TimHdm/slovami-ai/issues) with steps to reproduce
 - **Feature requests** — open an Issue describing your use case
 - **Pull requests** — discuss the change in an Issue first, especially for larger changes
 - **Documentation** — improvements to README, docs, code comments
@@ -22,6 +22,9 @@ git clone https://github.com/timhdm/slovami-ai.git
 cd slovami-ai
 ./gradlew assembleDebug
 ```
+
+Provision the external sherpa-onnx AAR first; see [docs/BUILDING.md](docs/BUILDING.md)
+and the [local build/install workflow](slovami-ai-build-and-install-instructions.md).
 
 For testing the downloader without re-installing on your device:
 1. Build & install
@@ -41,7 +44,7 @@ For testing the downloader without re-installing on your device:
 - [ ] Tested on a real device (not just emulator) for any UI changes
 - [ ] No new TODO/FIXME without explanation
 - [ ] strings.xml updated for both `values/` (RU) and `values-en/` (EN)
-- [ ] No models/binary blobs added to repo (use Releases instead)
+- [ ] No large models/binary blobs added to repo (model hosting is on Hugging Face; see `models/MODEL-HOSTING-MIGRATION.md`)
 - [ ] PR description explains *why*, not just *what*
 
 ## What we're cautious about
@@ -49,7 +52,7 @@ For testing the downloader without re-installing on your device:
 - **Network calls.** Slovami AI's selling point is "100% offline after setup". Any code adding telemetry, analytics, or remote features needs strong justification and an opt-in toggle.
 - **Permissions.** Don't add permissions without explicit user benefit.
 - **Dependency size.** Mobile users notice APK size. Justify any new heavy library.
-- **Model changes.** Updating ONNX models requires re-publishing GitHub Release with new SHA-256 — coordinate with maintainers.
+- **Model changes.** Coordinate model publication on Hugging Face with maintainers; update sizes and SHA-256 in `ModelRegistry.kt` and the complete hosted manifest. See [model hosting](models/MODEL-HOSTING-MIGRATION.md).
 
 ## Privacy & licensing notes
 

@@ -12,6 +12,9 @@ tags:
 
 Model files for [Slovami AI](https://github.com/timhdm/slovami-ai), offline Android speech recognition and speaker diarization.
 
+The application and this model distribution are maintained by Timur M. Omarov
+([TimHdm](https://github.com/TimHdm)). Model authors are credited separately below.
+
 These are redistributed third-party models, not newly trained weights. Original copyright and licence terms remain in force.
 
 | Model | Original project | Licence |
@@ -24,6 +27,5 @@ These are redistributed third-party models, not newly trained weights. Original 
 
 Files retain original bytes. The manifest includes sizes and SHA-256 checksums.
 
-The optional QVikhr model is not included.
 
 The Slovami AI application downloads these files from this public repository and executes inference on the device.

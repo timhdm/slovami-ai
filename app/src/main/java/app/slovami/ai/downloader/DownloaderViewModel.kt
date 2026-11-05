@@ -10,32 +10,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 /**
- * ViewModel для экрана скачивания моделей.
- *
- * Архитектура:
- *   ViewModel НЕ скачивает сама — только проксирует команды в DownloadService
- *   и подписывается на observable state из его companion'а.
- *
- * Зачем сервис:
- *   - Скачивание 332 МБ занимает 5-15 минут.
- *   - Если пользователь свернёт приложение или нажмёт Home — Activity
- *     уничтожится, ViewModel onCleared(), coroutine отменится → скачивание
- *     прервётся. Это плохо.
- *   - DownloadService = foreground service, защищён от kill'а пока показывает
- *     notification → скачивание продолжается даже когда приложение свёрнуто.
- *
- * Жизненный цикл:
- *   - При создании ViewModel → checkInitialState() (быстрая проверка filesDir)
- *   - startFirstRunDownload() → DownloadService.start(ctx)
- *   - cancel() → DownloadService.cancel(ctx)
- *   - retry() → cancel + start
- *
- * Phase отражает что показывать на UI:
- *   CHECKING       → spinner "Проверяем модели..."
- *   NEEDS_DOWNLOAD → welcome-экран с кнопкой Скачать
- *   DOWNLOADING    → progress-bar + цифры
- *   SUCCESS        → "Готово, переходим..."
- *   ERROR          → описание ошибки + кнопка Повторить
+ * Передаёт команды DownloadService и наблюдает его StateFlow.
+ * Загрузка не привязана к времени жизни экземпляра ViewModel.
  */
 class DownloaderViewModel(app: Application) : AndroidViewModel(app) {
 

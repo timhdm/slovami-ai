@@ -1,19 +1,20 @@
 # Slovami AI model hosting
 
-Independent public model repository: https://huggingface.co/TimHdm/slovami-ai-models
+Model repository: https://huggingface.co/TimHdm/slovami-ai-models
 
-## Migration status
+Application developer and model distribution maintainer: Timur M. Omarov
+([TimHdm](https://github.com/TimHdm)). Original model authors retain their attribution;
+see [CREDITS.md](CREDITS.md).
+
+## Historical migration record
 
 The nine model weights and the existing checksum manifest were duplicated on
 the Hugging Face server from the previous model repository. All nine paths
 and declared byte sizes were checked in the new public model repository.
 
-The Android app's model registry now points to `TimHdm/slovami-ai-models` on
-this task branch. **Full SHA-256 verification and clean-install testing remain
-required before merging this branch into main.**
-
-The optional QVikhr model is excluded because its SHA-256 is still zero and
-it is not part of the original nine-file model repository.
+The Android app's `ModelRegistry.kt` points to `TimHdm/slovami-ai-models`.
+The recorded path/size checks do not establish full SHA-256 verification or
+clean-install testing. Their completion is not documented here.
 
 ## Verify the copy on Windows
 
@@ -38,10 +39,11 @@ remote repository. The output must report that all nine hashes matched.
 
 ## Update the model card
 
-The Hugging Face server-side duplication copied the former repository's
-README, which still mentions the old application's brand. This is metadata,
-not model weights. The new Slovami AI-specific model card lives in
-`models/HUGGINGFACE-README.md`. Upload only this file:
+The maintained model card lives in `models/HUGGINGFACE-README.md`. A read-only
+check on 2026-11-05 confirmed the remote card already uses Slovami AI and preserves
+upstream attribution. The local card additionally identifies the application
+maintainer; publishing that update is a separate action. To publish the maintained
+card, upload only this file:
 
 ```powershell
 hf upload TimHdm/slovami-ai-models models/HUGGINGFACE-README.md README.md --repo-type model
@@ -49,7 +51,7 @@ hf upload TimHdm/slovami-ai-models models/HUGGINGFACE-README.md README.md --repo
 
 The model card preserves original model creators and licensing notices.
 
-## Final QA before Squash and Merge
+## QA after model hosting changes
 
 1. Verify all nine model SHA-256 values locally from the new repository.
 2. Confirm the new public model card renders correctly.
@@ -57,7 +59,8 @@ The model card preserves original model creators and licensing notices.
 4. Install fresh debug APK and test the initial RU model download.
 5. Test EN models and optional speaker embeddings as applicable.
 6. Verify the downloader's retry/resume and offline inference.
-7. Merge via Squash and Merge and automatically delete the task branch.
+7. Follow the current [PR and publishing workflow](../HOW_TO_PUBLISH.md), including
+   user approval before merging as required by the local development instructions.
 
 Older installed app versions may still depend on the previous repository.
 Do not attempt to disable or remove that service.

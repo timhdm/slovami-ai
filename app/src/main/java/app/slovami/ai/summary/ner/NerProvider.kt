@@ -5,9 +5,8 @@ import app.slovami.ai.summary.default_tier.NerEntity
 /**
  * Интерфейс для NER-провайдера.
  *
- * В Sprint 1 используется [NoOpNerProvider] — возвращает пустой результат, чтобы
- * сквозной пайплайн работал без NER. В Sprint 2 будет добавлен SlovnetNerProvider
- * с настоящим инференсом.
+ * [SlovnetNerProvider] выполняет инференс; [NoOpNerProvider] позволяет
+ * сформировать резюме без сущностей, если модели NER недоступны.
  */
 interface NerProvider {
 
@@ -30,12 +29,11 @@ interface NerProvider {
 }
 
 /**
- * Stub-реализация для Sprint 1: возвращает пустые списки.
- * Цель — проверить сквозной пайплайн без NER-инфраструктуры.
+ * Fallback без NER: возвращает пустые списки сущностей.
  */
 class NoOpNerProvider : NerProvider {
     override val description: String =
-        "LexRank + правила (без NER, Sprint 1)"
+        "LexRank + правила (без NER)"
 
     override fun extract(text: String): NerProvider.Result =
         NerProvider.Result(
